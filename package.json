@@ -1,0 +1,13 @@
+{
+  "name": "pellicule",
+  "private": true,
+  "type": "module",
+  "description": "Toutes les séances de cinéma de Montréal, au même endroit.",
+  "scripts": {
+    "scrape": "node scraper/index.mjs",
+    "dev": "npm --prefix web run dev",
+    "build": "npm --prefix web run build",
+    "test": "node --test \"scraper/**/*.test.mjs\" \"web/src/**/*.test.js\""
+  },
+  "engines": { "node": ">=22" }
+}

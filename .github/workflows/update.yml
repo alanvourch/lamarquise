@@ -1,0 +1,67 @@
+name: Mettre à jour les séances
+
+on:
+  schedule:
+    # 9 h 17 et 15 h 17 UTC ≈ 5 h et 11 h à Montréal: before the day starts, then once more for late changes.
+    - cron: '17 9,15 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths-ignore: ['**.md']
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      # Keeps the TMDB matches, IMDb dump and last good showtimes between runs.
+      - uses: actions/cache@v4
+        with:
+          path: |
+            .cache
+            web/public/data
+          key: pellicule-${{ github.run_id }}
+          restore-keys: pellicule-
+
+      - name: Collecter les séances
+        env:
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+        run: node scraper/index.mjs
+
+      - name: Construire le site
+        working-directory: web
+        env:
+          BASE_PATH: /${{ github.event.repository.name }}/
+        run: |
+          npm ci
+          npm run build
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
