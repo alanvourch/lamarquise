@@ -1,5 +1,7 @@
 name: Mettre à jour les séances
 
+# Collects the showtimes and commits web/public/data/showtimes.json; Vercel, linked to this
+# repository, rebuilds and publishes the site on every push to main.
 on:
   schedule:
     # 9 h 17 et 15 h 17 UTC ≈ 5 h et 11 h à Montréal: before the day starts, then once more for late changes.
@@ -7,22 +9,17 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths-ignore: ['**.md']
+    paths-ignore: ['**.md', 'web/public/data/**']
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
-  group: deploy
+  group: collect
   cancel-in-progress: false
 
-env:
-  # Production address on Vercel: asset paths and link previews are built for it.
-  SITE_URL: https://montreel.vercel.app
-  VERCEL_PROJECT: montreel
-
 jobs:
-  build-deploy:
+  collect:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -30,15 +27,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: web/package-lock.json
 
-      # Keeps the TMDB matches, IMDb dump and last good showtimes between runs.
+      # Keeps the TMDB matches and the IMDb dump between runs.
       - uses: actions/cache@v4
         with:
-          path: |
-            .cache
-            web/public/data
+          path: .cache
           key: lamarquise-${{ github.run_id }}
           restore-keys: lamarquise-
 
@@ -47,22 +40,13 @@ jobs:
           TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
         run: node scraper/index.mjs
 
-      - name: Construire le site
-        working-directory: web
-        env:
-          BASE_PATH: /
+      - name: Enregistrer les données
         run: |
-          npm ci
-          npm run build
-
-      # Static upload of web/dist; the project is created on the first run.
-      - name: Publier sur Vercel
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        run: |
-          if [ -z "$VERCEL_TOKEN" ]; then
-            echo "::error::Secret VERCEL_TOKEN manquant (vercel.com/account/tokens, puis Settings → Secrets → Actions)."
-            exit 1
-          fi
-          npx --yes vercel@65.2.0 deploy web/dist --prod --yes \
-            --project "$VERCEL_PROJECT" --create-if-missing --token "$VERCEL_TOKEN"
+          # Signed as the repository owner: Vercel's Hobby plan only deploys commits from the account owner.
+          git config user.name "alanvourch"
+          git config user.email "55190117+alanvourch@users.noreply.github.com"
+          git add web/public/data/showtimes.json
+          if git diff --cached --quiet; then echo "Rien de nouveau"; exit 0; fi
+          git commit -m "Séances du $(TZ=America/Toronto date '+%Y-%m-%d %H:%M')"
+          git pull --rebase origin main
+          git push origin HEAD:main

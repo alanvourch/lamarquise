@@ -27,7 +27,7 @@ GitHub Actions, 2 fois par jour
   └─ web/ (React + Vite) → site statique publié sur Vercel (montreel.vercel.app)
 ```
 
-Pas de serveur ni de base de données : un fichier JSON régénéré chaque matin, servi par un site statique. Si une source tombe en panne, ses séances de la veille sont conservées jusqu'à la prochaine collecte réussie.
+Pas de serveur ni de base de données : un fichier JSON régénéré deux fois par jour, servi par un site statique. Si une source tombe en panne, ses séances de la veille sont conservées jusqu'à la prochaine collecte réussie.
 
 ## Sources
 
@@ -60,11 +60,11 @@ npm test                           # tests (parseurs des sources, normalisation,
 
 ## Mise en ligne (Vercel)
 
-GitHub Actions collecte et construit le site, puis l'envoie tel quel sur Vercel (aucun build côté Vercel).
+GitHub Actions collecte les séances et enregistre `web/public/data/showtimes.json` dans le dépôt ; le projet Vercel `montreel`, relié au dépôt (dossier `web`), reconstruit et publie le site à chaque push sur `main`.
 
-1. *Settings → Secrets and variables → Actions* : ajouter `TMDB_API_KEY` et `VERCEL_TOKEN` (jeton créé sur vercel.com/account/tokens).
-2. Le workflow `.github/workflows/update.yml` collecte, construit et publie vers 5 h et 11 h (heure de Montréal), et à chaque push sur `main`. On peut aussi le lancer à la main (*Actions → Run workflow*). Le projet Vercel `montreel` est créé au premier passage.
-3. L'adresse publique est fixée par `SITE_URL` dans le workflow (aperçus de liens partagés).
+1. *Settings → Secrets and variables → Actions* : ajouter le secret `TMDB_API_KEY`.
+2. Le workflow `.github/workflows/update.yml` collecte vers 5 h et 11 h (heure de Montréal) et à chaque push de code sur `main`. On peut aussi le lancer à la main (*Actions → Run workflow*).
+3. Sur Vercel, l'adresse de production (`VERCEL_PROJECT_PRODUCTION_URL`) sert aux aperçus des liens partagés ; `SITE_URL` la remplace si besoin.
 4. Sur iPhone : ouvrir le site dans Safari, puis *Partager → Sur l'écran d'accueil*.
 
 ## Format des données

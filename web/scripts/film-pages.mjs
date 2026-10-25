@@ -7,7 +7,9 @@ import { fileURLToPath } from 'node:url';
 
 const DIST = fileURLToPath(new URL('../dist/', import.meta.url));
 // GitHub reports custom domains as http:// even when the site is served over https.
-const SITE = (process.env.SITE_URL || '').replace(/\/$/, '').replace(/^http:\/\//, 'https://');
+// On Vercel, the production address is known without configuration.
+const vercelUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL && `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+const SITE = (process.env.SITE_URL || vercelUrl || '').replace(/\/$/, '').replace(/^http:\/\//, 'https://');
 const TMDB_IMG = 'https://image.tmdb.org/t/p';
 
 const esc = (s) =>
