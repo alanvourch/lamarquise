@@ -1154,8 +1154,41 @@ a.st:hover {
   background: var(--bg);
 }
 
-.schedule-hour:first-letter {
+.schedule-hour-btn {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  border: 0;
+  background: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.schedule-hour-btn span:first-letter {
   text-transform: uppercase;
+}
+
+.schedule-hour-btn small {
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-2);
+}
+
+.schedule-hour-btn .icon {
+  align-self: center;
+  margin-left: auto;
+  color: var(--text-2);
+  transform: rotate(-90deg);
+  transition: transform 0.2s;
+}
+
+.schedule-hour-btn--folded .icon {
+  transform: rotate(90deg);
 }
 
 .srow {

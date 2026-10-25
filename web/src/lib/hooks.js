@@ -41,22 +41,22 @@ export function useNow(intervalMs = 60_000) {
 }
 
 /**
- * How many items of a long list to render: a first screenful, then more each time the sentinel
- * (an element placed after the list) scrolls into view. Starts over when the list changes.
+ * How many of `total` items to render: a first screenful, then more each time the sentinel
+ * (an element placed after the list) scrolls into view. Starts over when `resetKey` changes.
  */
-export function useProgressive(list, first = 40, step = 80) {
+export function useProgressive(total, resetKey, first = 40, step = 80) {
   const [count, setCount] = useState(first);
   const [sentinel, setSentinel] = useState(null);
-  useEffect(() => setCount(first), [list, first]);
+  useEffect(() => setCount(first), [resetKey, first]);
   useEffect(() => {
-    if (!sentinel || count >= list.length || typeof IntersectionObserver === 'undefined') return;
+    if (!sentinel || count >= total || typeof IntersectionObserver === 'undefined') return;
     const io = new IntersectionObserver((entries) => entries[0].isIntersecting && setCount((c) => c + step), {
       rootMargin: '800px 0px',
     });
     io.observe(sentinel);
     return () => io.disconnect();
-  }, [sentinel, count, list.length, step]);
-  return [typeof IntersectionObserver === 'undefined' ? list.length : count, setSentinel];
+  }, [sentinel, count, total, step]);
+  return [typeof IntersectionObserver === 'undefined' ? total : count, setSentinel];
 }
 
 export function toggleIn(list, id) {

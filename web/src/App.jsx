@@ -36,6 +36,7 @@ export default function App() {
   const [favCinemas, setFavCinemas] = usePersistentState('favCinemas', []);
   const [watchlist, setWatchlist] = usePersistentState('watchlist', []);
   const [day, setDay] = useState(null);
+  const [foldedHours, setFoldedHours] = useState({}); // { [day]: [hour labels] }
   const [query, setQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [openMovie, setOpenMovie] = useState(filmFromHash);
@@ -207,6 +208,10 @@ export default function App() {
             ) : view === 'seances' ? (
               <Schedule
                 showtimes={showtimes}
+                folded={new Set(foldedHours[activeDay] || [])}
+                onToggleHour={(label) =>
+                  setFoldedHours((f) => ({ ...f, [activeDay]: toggleIn(f[activeDay] || [], label) }))
+                }
                 data={data}
                 nowTs={now.getTime()}
                 today={today}
