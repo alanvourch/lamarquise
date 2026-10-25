@@ -1,8 +1,21 @@
 import { useMemo, useState } from 'react';
-import { Icon, ImdbBadge, Poster, Sheet, VersionBadge } from './ui.jsx';
+import { Icon, Poster, ScoreLinks, Sheet, VersionBadge } from './ui.jsx';
 import { GRACE_MS, priceFor } from '../lib/filters.js';
-import { formatPrice, img } from '../lib/format.js';
+import { formatPriceLabel, img, priceTitle } from '../lib/format.js';
 import { dayLabel, formatRuntime, formatTime } from '../lib/time.js';
+
+// Letterboxd names its people pages after them: "Alejandro G. Iñárritu" → /director/alejandro-g-inarritu/.
+export const letterboxdDirector = (name) =>
+  `https://letterboxd.com/director/${name
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/['’.]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')}/`;
+
+/** Address of the film's own page, which carries the link preview (title, poster) for sharing. */
+export const filmUrl = (movie) => new URL(`${import.meta.env.BASE_URL}film/${movie.id}/`, location.origin).href;
 
 function ShowtimeChip({ s, cinema, settings, nowTs }) {
   const past = s.ts < nowTs - GRACE_MS;
@@ -18,7 +31,11 @@ function ShowtimeChip({ s, cinema, settings, nowTs }) {
           </span>
         ))}
       </span>
-      {price && <span className={`st-price ${price.member ? 'st-price--member' : ''}`}>{formatPrice(price.amount)}</span>}
+      {price && (
+        <span className={`st-price ${price.member ? 'st-price--member' : ''}`} title={priceTitle(price)}>
+          {formatPriceLabel(price)}
+        </span>
+      )}
     </>
   );
   const url = s.bookingUrl || cinema.url;
@@ -50,15 +67,20 @@ export function MovieSheet({ movie, data, nowTs, today, initialDay, settings, fa
   }, [all, day, favCinemas]);
 
   const backdrop = img(movie.backdrop, 'w1280');
+  // The French title under the original one, or the original script ("가능한 사랑") under an English title.
+  const subtitle = [movie.titleFr, movie.originalTitle].find((t) => t && t !== movie.title);
   const facts = [movie.year, formatRuntime(movie.runtime), ...(movie.genres || []).slice(0, 3)].filter(Boolean);
 
+  const [copied, setCopied] = useState(false);
   const share = async () => {
-    const text = `${movie.title} — ${byCinema
-      .map(([cid, list]) => `${data.cinemas.get(cid).short}: ${list.map((s) => formatTime(s.date)).join(', ')}`)
-      .join(' · ')}`;
+    const url = filmUrl(movie);
     try {
-      if (navigator.share) await navigator.share({ title: movie.title, text });
-      else await navigator.clipboard.writeText(text);
+      if (navigator.share) await navigator.share({ title: movie.title, url });
+      else {
+        await navigator.clipboard.writeText(url);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }
     } catch {
       /* cancelled */
     }
@@ -68,7 +90,7 @@ export function MovieSheet({ movie, data, nowTs, today, initialDay, settings, fa
     <Sheet open onClose={onClose} label={movie.title} wide>
       <div className="msheet">
         <div
-          className={`msheet-hero ${backdrop || movie.trailer ? '' : 'msheet-hero--bare'}`}
+          className={`msheet-hero ${backdrop || movie.trailer ? '' : 'msheet-hero--bare'} ${trailer ? 'msheet-hero--playing' : ''}`}
           style={backdrop ? { backgroundImage: `url(${backdrop})` } : undefined}
         >
           {trailer && movie.trailer ? (
@@ -91,23 +113,9 @@ export function MovieSheet({ movie, data, nowTs, today, initialDay, settings, fa
           <Poster movie={movie} className="msheet-poster" />
           <div className="msheet-titles">
             <h2>{movie.title}</h2>
-            {movie.originalTitle && movie.originalTitle !== movie.title && (
-              <p className="msheet-original">{movie.originalTitle}</p>
-            )}
+            {subtitle && <p className="msheet-original">{subtitle}</p>}
             <p className="msheet-facts">{facts.join(' · ')}</p>
-            <div className="msheet-scores">
-              <ImdbBadge movie={movie} />
-              {movie.imdbId && (
-                <a href={`https://www.imdb.com/title/${movie.imdbId}/`} target="_blank" rel="noreferrer" className="textlink">
-                  IMDb <Icon name="external" size={12} />
-                </a>
-              )}
-              {movie.tmdbId && (
-                <a href={`https://letterboxd.com/tmdb/${movie.tmdbId}`} target="_blank" rel="noreferrer" className="textlink">
-                  Letterboxd <Icon name="external" size={12} />
-                </a>
-              )}
-            </div>
+            <ScoreLinks movie={movie} />
           </div>
         </div>
 
@@ -116,7 +124,7 @@ export function MovieSheet({ movie, data, nowTs, today, initialDay, settings, fa
             <Icon name="heart" size={16} filled={inWatchlist} /> {inWatchlist ? 'Dans ma liste' : 'Ma liste'}
           </button>
           <button className="btn" onClick={share}>
-            <Icon name="share" size={16} /> Partager
+            <Icon name="share" size={16} /> {copied ? 'Lien copié' : 'Partager'}
           </button>
         </div>
 
@@ -126,7 +134,16 @@ export function MovieSheet({ movie, data, nowTs, today, initialDay, settings, fa
             {movie.directors?.length > 0 && (
               <>
                 <dt>Réalisation</dt>
-                <dd>{movie.directors.join(', ')}</dd>
+                <dd>
+                  {movie.directors.map((name, i) => (
+                    <span key={name}>
+                      {i > 0 && ', '}
+                      <a className="person-link" href={letterboxdDirector(name)} target="_blank" rel="noreferrer">
+                        {name}
+                      </a>
+                    </span>
+                  ))}
+                </dd>
               </>
             )}
             {movie.cast?.length > 0 && (

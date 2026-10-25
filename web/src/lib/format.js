@@ -25,6 +25,14 @@ export function formatPrice(amount) {
   return (Number.isInteger(amount) ? PRICE_INT : PRICE_DEC).format(amount);
 }
 
+/** "16 $", or "11 $ +" when a premium-screen extra of unknown amount applies. */
+export function formatPriceLabel(price) {
+  return price ? `${formatPrice(price.amount)}${price.surcharge ? ' +' : ''}` : null;
+}
+
+export const priceTitle = (price) =>
+  price?.surcharge ? 'Prix membre CinéPlus, plus le supplément de ce type de salle' : undefined;
+
 const TMDB_IMG = 'https://image.tmdb.org/t/p';
 
 // Posters are stored as TMDB paths ("/abc.jpg") or full URLs from the cinema sites.

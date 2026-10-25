@@ -11,9 +11,14 @@ import { CinemaList, CinemaPicker } from './components/Cinemas.jsx';
 import { SettingsSheet } from './components/Settings.jsx';
 import { Icon } from './components/ui.jsx';
 
-const DEFAULT_SETTINGS = { cineplus: false, cineplusPrice: 11, hidePast: true };
+const DEFAULT_SETTINGS = { cineplus: false, hidePast: true };
 
-const filmFromHash = () => decodeURIComponent(location.hash.replace(/^#film=/, '')) || null;
+// A film opens from "#film=<id>" (in-app navigation) or from its shared page "<base>film/<id>/".
+const FILM_PATH = new RegExp(`^${import.meta.env.BASE_URL}film/([^/]+)/?$`);
+const filmFromHash = () =>
+  decodeURIComponent(location.hash.replace(/^#film=/, '')) ||
+  decodeURIComponent(location.pathname.match(FILM_PATH)?.[1] || '') ||
+  null;
 
 export default function App() {
   const [data, setData] = useState(null);
@@ -63,7 +68,8 @@ export default function App() {
   const closeFilm = useCallback(() => {
     if (history.state?.film) history.back();
     else {
-      history.replaceState(null, '', location.pathname + location.search);
+      // Leaving a shared film page lands on the home page.
+      history.replaceState(null, '', FILM_PATH.test(location.pathname) ? import.meta.env.BASE_URL : location.pathname + location.search);
       setOpenMovie(null);
     }
   }, []);

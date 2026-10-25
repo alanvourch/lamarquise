@@ -6,6 +6,8 @@ import { titleKey } from '../lib/labels.mjs';
 const API = 'https://api.themoviedb.org/3';
 const CACHE_FILE = join(CACHE_DIR, 'tmdb.json');
 const DETAILS_TTL = 5 * 86400_000;
+// Bumped when details() returns new fields, so cached entries are refetched.
+const DETAILS_VERSION = 2;
 const MISS_TTL = 2 * 86400_000;
 // Bumped when the search logic changes, so earlier misses are retried at once.
 const SEARCH_VERSION = 3;
@@ -127,6 +129,14 @@ function translation(translations = [], lang, country) {
   return translations.find((t) => t.iso_639_1 === lang && (!country || t.iso_3166_1 === country))?.data;
 }
 
+export const isLatin = (s) => /^[\p{Script=Latin}\p{N}\p{P}\p{S}\s]*$/u.test(s || '');
+
+/** Poster in the given language, the best voted first; TMDB's default poster follows the request language. */
+function posterIn(images, lang) {
+  const posters = (images?.posters || []).filter((p) => p.iso_639_1 === lang);
+  return posters.sort((a, b) => b.vote_average - a.vote_average || b.vote_count - a.vote_count)[0]?.file_path || null;
+}
+
 function canadianRelease(releaseDates) {
   const ca = releaseDates?.results?.find((r) => r.iso_3166_1 === 'CA');
   const theatrical = ca?.release_dates?.find((d) => d.type === 3) || ca?.release_dates?.[0];
@@ -139,16 +149,25 @@ async function details(id) {
     append_to_response: 'videos,credits,translations,release_dates',
     include_video_language: 'fr,en,null',
   });
+  const lang = d.original_language;
   const tr = d.translations?.translations;
   const frCA = translation(tr, 'fr', 'CA');
   const fr = translation(tr, 'fr', 'FR') || translation(tr, 'fr');
   const en = translation(tr, 'en', 'US') || translation(tr, 'en');
+  const frenchTitle = frCA?.title || fr?.title || (lang === 'fr' ? d.original_title : null);
+  // Films are shown under their original title and poster ("Primetime", not "En direct"). Titles in
+  // another script ("가능한 사랑") read in English instead, with the English poster to match.
+  const readable = lang === 'fr' || isLatin(d.original_title);
+  const voTitle = lang === 'fr' ? frenchTitle || d.original_title : readable ? d.original_title : en?.title || d.original_title;
+  const posterLang = readable ? lang : 'en';
+  const images = await call(`/movie/${id}/images`, { include_image_language: [...new Set([posterLang, 'en', 'null'])].join(',') });
+  const poster =
+    posterIn(images, posterLang) || posterIn(images, 'en') || posterIn(images, null) || d.poster_path || null;
   return {
     tmdbId: d.id,
     imdbId: d.imdb_id || null,
-    title: frCA?.title || fr?.title || d.title,
-    // Without a French title TMDB falls back to the original one ("가능한 사랑"); the cinema's is better.
-    frenchTitle: Boolean(frCA?.title || fr?.title || d.original_language === 'fr'),
+    title: voTitle,
+    titleFr: frenchTitle && frenchTitle !== voTitle ? frenchTitle : null,
     originalTitle: d.original_title,
     originalLanguage: d.original_language,
     year: yearOf(d.release_date),
@@ -156,7 +175,7 @@ async function details(id) {
     runtime: d.runtime || null,
     genres: (d.genres || []).map((g) => GENRES_FR[g.id] || g.name),
     synopsis: frCA?.overview || fr?.overview || d.overview || en?.overview || null,
-    poster: d.poster_path || null,
+    poster,
     backdrop: d.backdrop_path || null,
     trailer: pickTrailer(d.videos?.results),
     directors: (d.credits?.crew || []).filter((c) => c.job === 'Director').map((c) => c.name),
@@ -181,7 +200,9 @@ export async function matchFilms(films, overrides = {}, log = console.log) {
 
   const getDetails = async (id) => {
     const cached = cache.details[id];
-    if (!cached || now - cached.at > DETAILS_TTL) cache.details[id] = { at: now, movie: await details(id) };
+    if (!cached || cached.v !== DETAILS_VERSION || now - cached.at > DETAILS_TTL) {
+      cache.details[id] = { v: DETAILS_VERSION, at: now, movie: await details(id) };
+    }
     return cache.details[id].movie;
   };
 

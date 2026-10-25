@@ -8,8 +8,10 @@ Une app web (installable sur téléphone) qui rassemble les séances de **tous l
 - Tri : prochaine séance, note IMDb, popularité, nombre de séances, nouveautés, titre, durée
 - Filtres : mes cinémas favoris ★, version, « dès 19 h », note minimale, genre, ma liste ♥, recherche (titre, réalisateur, acteur)
 - 3 vues : **Films** (grille d'affiches), **Séances** (liste chronologique, « que voir dans l'heure ? »), **Cinémas** (programme par salle)
-- Prix de la place, et **prix membre CinéPlus** sur les salles Cineplex (réglage)
-- Lien de réservation sur chaque séance, partage, liens IMDb et Letterboxd
+- Films affichés sous leur **titre et affiche en VO** (le titre français reste sur la fiche et dans la recherche)
+- Prix de la place, et **prix membre CinéPlus** sur les salles Cineplex (réglage) : 11 $, 16 $ en UltraAVX, « 11 $ + » pour les autres salles premium (`CINEPLUS_PRICES` dans `web/src/lib/filters.js`)
+- Lien de réservation sur chaque séance, liens IMDb et Letterboxd (films et réalisateurs)
+- Partage d'un film par un lien qui s'affiche avec son affiche et ses séances (une page par film générée au build, `web/scripts/film-pages.mjs`)
 - Favoris et réglages enregistrés dans le navigateur, thème clair ou sombre selon le téléphone
 
 ## Comment ça marche

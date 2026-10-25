@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Icon, ImdbBadge, Poster, Sheet, VersionBadge } from './ui.jsx';
 import { formatPrice } from '../lib/format.js';
+import { CINEPLUS_PRICES } from '../lib/filters.js';
 import { formatTime, shortDayLabel } from '../lib/time.js';
 
 function groupByCinema(showtimes) {
@@ -16,7 +17,11 @@ function groupByCinema(showtimes) {
 
 function PriceLine({ cinema, settings }) {
   if (settings.cineplus && cinema.cineplus) {
-    return <span className="st-price--member">CinéPlus {formatPrice(settings.cineplusPrice)}</span>;
+    return (
+      <span className="st-price--member">
+        CinéPlus {formatPrice(CINEPLUS_PRICES.base)} · UltraAVX {formatPrice(CINEPLUS_PRICES.UltraAVX)}
+      </span>
+    );
   }
   if (cinema.prices?.adult == null) return null;
   return (
@@ -77,7 +82,7 @@ export function CinemaList({ showtimes, data, favCinemas, onToggleCinema, onOpen
                       <Poster movie={movie} size="w154" className="cinema-movie-poster" />
                       <span className="cinema-movie-info">
                         <span className="cinema-movie-title">{movie.title}</span>
-                        <ImdbBadge movie={movie} compact />
+                        <ImdbBadge movie={movie} />
                       </span>
                     </button>
                     <div className="st-row st-row--compact">

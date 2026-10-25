@@ -10,26 +10,10 @@ export function SettingsSheet({ open, onClose, settings, setSettings, onPickCine
         <label className="setting">
           <span>
             <strong>Abonné CinéPlus</strong>
-            <small>Affiche ton prix membre sur les séances Cineplex.</small>
+            <small>Affiche le prix membre sur les séances Cineplex : 11 $, 16 $ en UltraAVX.</small>
           </span>
           <input type="checkbox" checked={settings.cineplus} onChange={(e) => set({ cineplus: e.target.checked })} />
         </label>
-        {settings.cineplus && (
-          <label className="setting setting--sub">
-            <span>Prix membre</span>
-            <span className="price-input">
-              <input
-                type="number"
-                min="0"
-                step="0.25"
-                inputMode="decimal"
-                value={settings.cineplusPrice}
-                onChange={(e) => set({ cineplusPrice: Number(e.target.value) || 0 })}
-              />
-              $
-            </span>
-          </label>
-        )}
 
         <label className="setting">
           <span>

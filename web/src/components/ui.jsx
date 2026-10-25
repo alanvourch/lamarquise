@@ -82,15 +82,42 @@ export function VersionBadge({ version, small }) {
   return <span className={`vbadge vbadge--${version.toLowerCase()} ${small ? 'vbadge--sm' : ''}`}>{version}</span>;
 }
 
-export function ImdbBadge({ movie, compact }) {
+// Rating on thumbnails; the number of votes is on the film sheet.
+export function ImdbBadge({ movie }) {
   if (movie.imdbRating == null) return null;
-  const votes = formatVotes(movie.imdbVotes);
   return (
     <span className="imdb" title={`IMDb ${movie.imdbRating}/10 · ${movie.imdbVotes ?? 0} votes`}>
       <span className="imdb-logo">IMDb</span>
       <strong>{formatRating(movie.imdbRating)}</strong>
-      {!compact && votes && <span className="imdb-votes">{votes}</span>}
     </span>
+  );
+}
+
+const asset = (path) => `${import.meta.env.BASE_URL}${path}`;
+
+/** Film sheet: IMDb and Letterboxd logos linking to the film, the rating and its votes in between. */
+export function ScoreLinks({ movie }) {
+  const votes = formatVotes(movie.imdbVotes);
+  return (
+    <div className="msheet-scores">
+      {movie.imdbId ? (
+        <a className="score-link" href={`https://www.imdb.com/title/${movie.imdbId}/`} target="_blank" rel="noreferrer">
+          <img className="logo-imdb" src={asset('logos/imdb.svg')} alt="IMDb" />
+          {movie.imdbRating != null && <strong>{formatRating(movie.imdbRating)}</strong>}
+          {votes && <span className="score-votes">{votes} votes</span>}
+        </a>
+      ) : (
+        movie.imdbRating != null && <strong>{formatRating(movie.imdbRating)}</strong>
+      )}
+      {movie.tmdbId && (
+        <a className="score-link" href={`https://letterboxd.com/tmdb/${movie.tmdbId}`} target="_blank" rel="noreferrer">
+          <picture>
+            <source srcSet={asset('logos/letterboxd.svg')} media="(prefers-color-scheme: light)" />
+            <img className="logo-letterboxd" src={asset('logos/letterboxd-dark.svg')} alt="Letterboxd" />
+          </picture>
+        </a>
+      )}
+    </div>
   );
 }
 

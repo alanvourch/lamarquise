@@ -277,6 +277,8 @@ a {
 }
 
 .search input {
+  -webkit-appearance: none;
+  appearance: none;
   flex: 1;
   min-width: 0;
   border: 0;
@@ -284,6 +286,14 @@ a {
   padding: 10px 0;
   outline: none;
   color: var(--text);
+}
+
+/* The browser draws its own clear button in search fields; ours is enough. */
+.search input::-webkit-search-cancel-button,
+.search input::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
 }
 
 /* ---------- Day tabs ---------- */
@@ -812,6 +822,15 @@ a {
   height: 96px;
 }
 
+/* While the trailer plays, the poster and title move below it instead of covering its bottom. */
+.msheet-hero--playing::after {
+  display: none;
+}
+
+.msheet-hero--playing + .msheet-head {
+  margin-top: 16px;
+}
+
 .msheet-hero::after {
   content: '';
   position: absolute;
@@ -891,8 +910,41 @@ a {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px 14px;
+  gap: 8px 16px;
   margin-top: 10px;
+}
+
+.score-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: inherit;
+  text-decoration: none;
+  font-size: 15px;
+}
+
+.score-votes {
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+.logo-imdb {
+  display: block;
+  height: 22px;
+  width: auto;
+}
+
+.logo-letterboxd {
+  display: block;
+  height: 20px;
+  width: auto;
+}
+
+.person-link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
+  text-underline-offset: 3px;
 }
 
 .msheet-actions {

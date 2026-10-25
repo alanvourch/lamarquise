@@ -4,7 +4,7 @@
 import { fileURLToPath } from 'node:url';
 import SOURCES from './sources/index.mjs';
 import { CINEMA_EXTRAS } from './cinemas.mjs';
-import { matchFilms, tmdbAvailable } from './enrich/tmdb.mjs';
+import { isLatin, matchFilms, tmdbAvailable } from './enrich/tmdb.mjs';
 import { imdbRatings } from './enrich/imdb.mjs';
 import { cleanTitle, titleKey } from './lib/labels.mjs';
 import { readJson, writeJson } from './lib/cache.mjs';
@@ -102,7 +102,8 @@ async function buildMovies(showtimes) {
     if (movies.has(id)) continue;
     movies.set(id, {
       id,
-      title: t?.frenchTitle === false ? film.title : t?.title || film.title,
+      // Shown under the original title; the French one is kept for the film sheet and search.
+      ...(t ? { title: t.title, titleFr: t.titleFr } : untitledVO(film)),
       originalTitle: t?.originalTitle || film.originalTitle || null,
       originalLanguage: t?.originalLanguage || film.originalLanguage || null,
       year: t?.year || film.year || null,
@@ -135,6 +136,12 @@ async function buildMovies(showtimes) {
   }
   for (const [alias, key] of aliases) keyToId.set(alias, keyToId.get(key));
   return { movies, keyToId };
+}
+
+// Unmatched films: the cinema's original title when it is readable, its French one besides.
+function untitledVO(film) {
+  const vo = film.originalTitle && isLatin(film.originalTitle) ? film.originalTitle : film.title;
+  return { title: vo, titleFr: vo !== film.title ? film.title : null };
 }
 
 // Cineplex pages give a dubbed film's French title with its original title ("Raison et sentiments" =

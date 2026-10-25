@@ -44,10 +44,15 @@ jobs:
           TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
         run: node scraper/index.mjs
 
+      # Public address of the site (custom domain included), for asset paths and link previews.
+      - id: pages
+        uses: actions/configure-pages@v5
+
       - name: Construire le site
         working-directory: web
         env:
-          BASE_PATH: /${{ github.event.repository.name }}/
+          BASE_PATH: ${{ steps.pages.outputs.base_path }}/
+          SITE_URL: ${{ steps.pages.outputs.base_url }}
         run: |
           npm ci
           npm run build

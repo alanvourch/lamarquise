@@ -1,7 +1,7 @@
 import { Fragment } from 'react';
 import { Icon, ImdbBadge, Poster, VersionBadge } from './ui.jsx';
 import { priceFor } from '../lib/filters.js';
-import { formatPrice } from '../lib/format.js';
+import { formatPriceLabel, priceTitle } from '../lib/format.js';
 import { dayLabel, formatTime, localParts, untilLabel } from '../lib/time.js';
 
 // Chronological list of every screening: "what can I catch tonight?"
@@ -31,7 +31,7 @@ export function Schedule({ showtimes, data, nowTs, today, settings, onOpen, mult
                 <span className="srow-info">
                   <span className="srow-title">{movie.title}</span>
                   <span className="srow-sub">
-                    <ImdbBadge movie={movie} compact />
+                    <ImdbBadge movie={movie} />
                     <VersionBadge version={s.version} small />
                     {s.formats?.map((f) => (
                       <span key={f} className="fbadge">
@@ -47,7 +47,9 @@ export function Schedule({ showtimes, data, nowTs, today, settings, onOpen, mult
               {(s.bookingUrl || cinema.url) && (
                 <a className="srow-book" href={s.bookingUrl || cinema.url} target="_blank" rel="noreferrer">
                   {price ? (
-                    <span className={price.member ? 'st-price--member' : ''}>{formatPrice(price.amount)}</span>
+                    <span className={price.member ? 'st-price--member' : ''} title={priceTitle(price)}>
+                      {formatPriceLabel(price)}
+                    </span>
                   ) : (
                     <Icon name="ticket" size={18} />
                   )}

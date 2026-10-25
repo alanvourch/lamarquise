@@ -47,7 +47,7 @@ function movieMatches(movie, f, ctx) {
   if (f.genre && !(movie.genres || []).includes(f.genre)) return false;
   if (ctx.query) {
     const hay = normalizeText(
-      [movie.title, movie.originalTitle, ...(movie.directors || []), ...(movie.cast || [])]
+      [movie.title, movie.titleFr, movie.originalTitle, ...(movie.directors || []), ...(movie.cast || [])]
         .filter(Boolean)
         .join(' '),
     );
@@ -127,10 +127,18 @@ export function sortGroups(groups, sortId) {
   return [...groups].sort((a, b) => cmp(a, b) || COMPARATORS.next(a, b));
 }
 
+// CinéPlus member prices at Cineplex: a regular screen, and premium screens whose price is known.
+// Other premium screens (IMAX, VIP, D-BOX, 3D…) cost an extra the app doesn't know: shown as "11 $ +".
+export const CINEPLUS_PRICES = { base: 11, UltraAVX: 16 };
+const PREMIUM_FORMATS = new Set(['IMAX', 'UltraAVX', 'VIP', 'D-BOX', '3D', '4DX', 'ScreenX']);
+
 // Price shown for a screening, applying the CinéPlus member price on Cineplex screens.
 export function priceFor(showtime, cinema, settings) {
   if (settings.cineplus && cinema.cineplus) {
-    return { amount: settings.cineplusPrice, member: true };
+    const premium = (showtime.formats || []).filter((f) => PREMIUM_FORMATS.has(f));
+    const known = premium.map((f) => CINEPLUS_PRICES[f]).filter((p) => p != null);
+    const amount = Math.max(CINEPLUS_PRICES.base, ...known);
+    return known.length < premium.length ? { amount, member: true, surcharge: true } : { amount, member: true };
   }
   const amount = showtime.price ?? cinema.prices?.adult ?? null;
   return amount == null ? null : { amount, member: false };

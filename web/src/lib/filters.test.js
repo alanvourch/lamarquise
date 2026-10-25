@@ -70,9 +70,14 @@ test('week view and sorting', () => {
 });
 
 test('CinéPlus member price only applies to Cineplex screens', () => {
-  const settings = { cineplus: true, cineplusPrice: 11 };
+  const settings = { cineplus: true };
   const [s1, , , , s5] = data.showtimes;
   assert.deepEqual(priceFor(s1, data.cinemas.get('a'), settings), { amount: 11, member: true });
+  const cineplex = data.cinemas.get('a');
+  assert.deepEqual(priceFor({ ...s1, formats: ['UltraAVX'] }, cineplex, settings), { amount: 16, member: true });
+  assert.deepEqual(priceFor({ ...s1, formats: ['IMAX'] }, cineplex, settings), { amount: 11, member: true, surcharge: true });
+  assert.deepEqual(priceFor({ ...s1, formats: ['D-BOX', 'UltraAVX'] }, cineplex, settings), { amount: 16, member: true, surcharge: true });
+  assert.deepEqual(priceFor({ ...s1, formats: ['Dolby'] }, cineplex, settings), { amount: 11, member: true });
   assert.deepEqual(priceFor(s5, data.cinemas.get('b'), settings), { amount: 9, member: false });
   assert.deepEqual(priceFor(s1, data.cinemas.get('a'), { cineplus: false }), { amount: 15.5, member: false });
 });
