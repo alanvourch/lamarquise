@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { cleanTitle, detectFormats, normalizeVersion, titleKey } from './labels.mjs';
+import { cleanTitle, detectFormats, normalizeVersion, smartCase, titleKey } from './labels.mjs';
 
 test('normalizeVersion understands Québec labels', () => {
   const cases = {
@@ -36,4 +36,35 @@ test('titleKey merges spelling variants', () => {
   assert.equal(titleKey('Le Robot sauvage'), titleKey('robot sauvage'));
   assert.equal(titleKey("L'Étranger"), titleKey('Etranger'));
   assert.equal(titleKey('The Brutalist'), 'brutalist');
+});
+
+test('Québec cinema labels', () => {
+  assert.equal(normalizeVersion('VOASTF'), 'VOSTF');
+  assert.equal(normalizeVersion('VOFSTA'), 'VOSTA');
+  assert.equal(normalizeVersion('VOF'), 'VO');
+  assert.equal(normalizeVersion('Salle régulière avec s.-t. fr.'), 'VOSTF');
+  assert.equal(normalizeVersion('avec s.-t. ang.'), 'VOSTA');
+});
+
+test('cleanTitle strips programming tags', () => {
+  assert.equal(cleanTitle('Train to Busan: 10e anniversaire [DERNIÈRE SÉANCE]').title, 'Train to Busan');
+  assert.equal(cleanTitle('Practical Magic - Ciné-tricot').title, 'Practical Magic');
+  assert.equal(cleanTitle("Cube - Coups de coeur de l'équipe").title, 'Cube');
+  assert.equal(cleanTitle('Zo Reken + Taxi pour deux (ciné-rencontre)').title, 'Zo Reken + Taxi pour deux');
+  assert.equal(cleanTitle('Qcc #30: What Ever Happened to Baby Jane?').title, 'What Ever Happened to Baby Jane?');
+  assert.equal(cleanTitle('Verity v.f.').title, 'Verity');
+});
+
+test('titleKey ignores ligatures, "&" and articles only as whole words', () => {
+  assert.equal(titleKey('Au Cœur de la Bête'), titleKey('Au coeur de la bête'));
+  assert.equal(titleKey('Les minions & les monstres'), titleKey('Les Minions et les monstres'));
+  assert.equal(titleKey('Laura'), 'laura');
+  assert.equal(titleKey('Theatre Camp'), 'theatre camp');
+});
+
+test('smartCase', () => {
+  assert.equal(smartCase("LA MEILLEURE FAÇON, C'EST PAR ACCIDENT"), "La meilleure façon, c'est par accident");
+  assert.equal(smartCase('NIGHT OF THE LIVING DEAD'), 'Night of the Living Dead');
+  assert.equal(smartCase("NOBODY'S VIOLENCE"), "Nobody's Violence");
+  assert.equal(smartCase('Possible Love'), 'Possible Love');
 });

@@ -29,17 +29,21 @@ Pas de serveur ni de base de données : un fichier JSON régénéré chaque mati
 
 ## Sources
 
-| Cinémas | Source prévue | État |
+| Cinémas | Source | État |
 | --- | --- | --- |
-| Cineplex (Forum, Quartier Latin, Banque Scotia…) | API utilisée par cineplex.com | à brancher |
-| Cinéma du Parc, Cinéma du Musée, Cinéma Beaubien | cinemacinema.ca | à brancher |
-| Cinéma Moderne | cinemamoderne.com | à brancher |
-| Cinéma Public | cinemapublic.ca | à brancher |
-| Cinémathèque québécoise | cinematheque.qc.ca | à brancher |
-| Guzzo | cinemasguzzo.com | à brancher |
-| Les autres salles | Cinemaclock, en complément | à brancher |
+| Cineplex : Banque Scotia, Forum, Quartier Latin, Royalmount, StarCité, Angrignon, Kirkland, Laval, Brossard | Cinemaclock | branché |
+| Cinéma du Parc, Cinéma du Musée, Cinéma Beaubien | cinemacinema.ca (données JSON des pages) | branché |
+| Cinéma Moderne | cinemamoderne.com (calendrier mensuel) | branché |
+| Cinéma Public (Casa d'Italia, Livart) | cinemapublic.ca (fiches films) | branché |
+| Cinémathèque québécoise | Cinemaclock | branché |
+| Guzzo (Méga-Plex Terrebonne 14, la seule salle encore sur leur site) | cinemasguzzo.com (horaire de la semaine) | branché |
+| Les autres salles | Cinemaclock, en complément | à ajouter (une ligne par salle) |
+
+Cineplex et la Cinémathèque passent par Cinemaclock : le `robots.txt` de cineplex.com interdit tous les robots (`Disallow: /`), et cinematheque.qc.ca renvoie un défi Cloudflare aux serveurs. Cinemaclock autorise la collecte et donne pour chaque séance la langue, les sous-titres et l'écran (IMAX, UltraAVX, D-BOX, VIP…). Pour ajouter une salle, il suffit d'une ligne dans `scraper/sources/cinemaclock.mjs` avec son identifiant Cinemaclock (`cinemaclock.com/movie-theaters/<identifiant>`).
 
 Chaque source est un module de `scraper/sources/` qui renvoie `{ cinemas, showtimes }` (contrat détaillé dans `scraper/sources/index.mjs`). Les prix des salles indépendantes se renseignent dans `scraper/cinemas.mjs`. Si un film est mal reconnu par TMDB, on force la correspondance dans `scraper/overrides.json` (`"titre normalisé": idTMDB`).
+
+Pour reconnaître les films, la collecte croise les titres : « Raison et sentiments » chez Guzzo (sans année) rejoint « Raison et sentiments » [Sense and Sensibility, 2026] chez Cineplex, les copies d'un même film à Beaubien et au Parc sont reliées, et une correspondance TMDB dont le réalisateur ne colle pas est écartée (homonymes). `node scraper/index.mjs moderne public` ne recollecte que ces sources ; les autres gardent leurs séances de la veille.
 
 ## En local
 
@@ -47,7 +51,7 @@ Chaque source est un module de `scraper/sources/` qui renvoie `{ cinemas, showti
 cd web && npm install && cd ..
 TMDB_API_KEY=xxxx npm run scrape   # écrit web/public/data/showtimes.json
 npm run dev                        # http://localhost:5173
-npm test                           # tests (normalisation, filtres, tris, prix)
+npm test                           # tests (parseurs des sources, normalisation, filtres, tris, prix)
 ```
 
 `TMDB_API_KEY` accepte une clé v3 ou un jeton de lecture v4.

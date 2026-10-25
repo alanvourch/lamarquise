@@ -4,4 +4,10 @@
 //               formats: [], bookingUrl, price, film: { title, originalTitle, year, runtime,
 //               directors, synopsis, poster, imdbId } }
 // Adapters are added once each site has been checked against its live pages.
-export default [];
+import cinemacinema from './cinemacinema.mjs';
+import { cinematheque, cineplex } from './cinemaclock.mjs';
+import guzzo from './guzzo.mjs';
+import moderne from './moderne.mjs';
+import publicCinema from './public.mjs';
+
+export default [cineplex, cinemacinema, moderne, publicCinema, cinematheque, guzzo];

@@ -2,3 +2,4 @@ node_modules/
 web/dist/
 .cache/
 .env
+web/public/data/showtimes.json

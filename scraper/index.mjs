@@ -54,24 +54,38 @@ function filmKey(film) {
   return `${titleKey(title)}|${film.year || year || ''}`;
 }
 
+const isEmpty = (v) => v == null || (Array.isArray(v) && !v.length);
+
+// Fill gaps from other sources showing the same film.
+function fillGaps(target, film) {
+  for (const [k, v] of Object.entries(film)) if (isEmpty(target[k]) && !isEmpty(v)) target[k] = v;
+}
+
 async function buildMovies(showtimes) {
   const films = new Map();
   for (const s of showtimes) {
     s.filmKey = filmKey(s.film);
+    const clean = cleanTitle(s.film.title);
     if (!films.has(s.filmKey)) {
-      const clean = cleanTitle(s.film.title);
       films.set(s.filmKey, {
         key: s.filmKey,
         ...s.film,
         title: clean.title,
         originalTitle: s.film.originalTitle ? cleanTitle(s.film.originalTitle).title : null,
         year: s.film.year || clean.year,
+        titles: new Set(),
       });
-    } else {
-      // Fill gaps from other sources showing the same film.
-      const f = films.get(s.filmKey);
-      for (const [k, v] of Object.entries(s.film)) if (f[k] == null && v != null) f[k] = v;
-    }
+    } else fillGaps(films.get(s.filmKey), s.film);
+    films.get(s.filmKey).titles.add(clean.title);
+  }
+
+  const aliases = mergeTranslatedTitles(films);
+  // Every title seen for a film is worth a TMDB search ("La patrie" when "Fatherland" finds a namesake).
+  for (const f of films.values()) {
+    const known = new Set([f.title, f.originalTitle].filter(Boolean).map(titleKey));
+    // Québec distributors often append ": Le film" to a title TMDB knows without it.
+    const variants = [...f.titles].flatMap((t) => [t, t.replace(/\s*[:\-–—]\s*le film$/i, '')]);
+    f.altTitles = [...new Set(variants)].filter((t) => !known.has(titleKey(t)));
   }
 
   const overrides = (await readJson(OVERRIDES, {})).tmdb || {};
@@ -88,7 +102,7 @@ async function buildMovies(showtimes) {
     if (movies.has(id)) continue;
     movies.set(id, {
       id,
-      title: t?.title || film.title,
+      title: t?.frenchTitle === false ? film.title : t?.title || film.title,
       originalTitle: t?.originalTitle || film.originalTitle || null,
       originalLanguage: t?.originalLanguage || film.originalLanguage || null,
       year: t?.year || film.year || null,
@@ -119,7 +133,36 @@ async function buildMovies(showtimes) {
   } catch (err) {
     log(`  IMDb: notes indisponibles (${err.message})`);
   }
+  for (const [alias, key] of aliases) keyToId.set(alias, keyToId.get(key));
   return { movies, keyToId };
+}
+
+// Cineplex pages give a dubbed film's French title with its original title ("Raison et sentiments" =
+// "Sense and Sensibility", 2026); Guzzo only prints the French title, and no year. Fold such films
+// into the one that knows its original title, so both get the same TMDB match.
+function mergeTranslatedTitles(films) {
+  const byFrenchTitle = new Map();
+  for (const f of films.values()) {
+    if (!f.originalTitle) continue;
+    for (const title of f.titles) {
+      const k = titleKey(title);
+      if (k === titleKey(f.originalTitle)) continue;
+      // A French title shared by two different films is ambiguous: leave it alone.
+      byFrenchTitle.set(k, byFrenchTitle.has(k) && byFrenchTitle.get(k) !== f ? null : f);
+    }
+  }
+  const aliases = new Map();
+  for (const f of [...films.values()]) {
+    if (f.originalTitle) continue;
+    const target = byFrenchTitle.get(titleKey(f.title));
+    if (!target || target === f || (f.year && target.year && f.year !== target.year)) continue;
+    const { titles, key, ...rest } = f;
+    fillGaps(target, rest);
+    for (const t of titles) target.titles.add(t);
+    films.delete(key);
+    aliases.set(key, target.key);
+  }
+  return aliases;
 }
 
 async function main() {
