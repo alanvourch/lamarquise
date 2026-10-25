@@ -68,6 +68,14 @@ export function shortDayLabel(key, todayKey) {
   return weekdayFmt.format(keyToDate(key));
 }
 
+const dayMonthFmt = new Intl.DateTimeFormat('fr-CA', { day: 'numeric', month: 'short', timeZone: 'UTC' });
+
+/** Release date in the "Sorties" strip: "Demain", "ven. 30" this week, "13 nov." further out. */
+export function releaseLabel(key, todayKey) {
+  if (key <= addDays(todayKey, 6)) return dayLabel(key, todayKey);
+  return dayMonthFmt.format(keyToDate(key));
+}
+
 export function longDayLabel(key) {
   const s = longFmt.format(keyToDate(key));
   return s.charAt(0).toUpperCase() + s.slice(1);

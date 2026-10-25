@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Icon, Poster, ScoreLinks, Sheet, VersionBadge } from './ui.jsx';
 import { GRACE_MS, priceFor } from '../lib/filters.js';
 import { formatPriceLabel, img, priceTitle } from '../lib/format.js';
-import { dayLabel, formatRuntime, formatTime } from '../lib/time.js';
+import { dayLabel, formatRuntime, formatTime, longDayLabel } from '../lib/time.js';
 
 // Letterboxd names its people pages after them: "Alejandro G. Iñárritu" → /director/alejandro-g-inarritu/.
 export const letterboxdDirector = (name) =>
@@ -158,7 +158,11 @@ export function MovieSheet({ movie, data, nowTs, today, initialDay, settings, fa
         <section className="msheet-showtimes">
           <h3>Séances</h3>
           {days.length === 0 ? (
-            <p className="muted">Plus de séance annoncée.</p>
+            <p className="muted">
+              {movie.releaseDate > today
+                ? `En salle à partir du ${longDayLabel(movie.releaseDate).toLowerCase()}. Pas encore de séance annoncée.`
+                : 'Plus de séance annoncée.'}
+            </p>
           ) : (
             <>
               <div className="daytabs daytabs--inline" role="tablist">

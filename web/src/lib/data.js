@@ -29,6 +29,8 @@ export function normalize(raw) {
     movies,
     showtimes,
     genres,
+    // Films not in theatres yet (no showtimes), for the "Sorties" strip.
+    upcoming: (raw.upcoming || []).filter((id) => movies.has(id)),
     days: [...new Set(showtimes.map((s) => s.day))].sort(),
   };
 }

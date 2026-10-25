@@ -40,6 +40,25 @@ export function useNow(intervalMs = 60_000) {
   return now;
 }
 
+/**
+ * How many items of a long list to render: a first screenful, then more each time the sentinel
+ * (an element placed after the list) scrolls into view. Starts over when the list changes.
+ */
+export function useProgressive(list, first = 40, step = 80) {
+  const [count, setCount] = useState(first);
+  const [sentinel, setSentinel] = useState(null);
+  useEffect(() => setCount(first), [list, first]);
+  useEffect(() => {
+    if (!sentinel || count >= list.length || typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver((entries) => entries[0].isIntersecting && setCount((c) => c + step), {
+      rootMargin: '800px 0px',
+    });
+    io.observe(sentinel);
+    return () => io.disconnect();
+  }, [sentinel, count, list.length, step]);
+  return [typeof IntersectionObserver === 'undefined' ? list.length : count, setSentinel];
+}
+
 export function toggleIn(list, id) {
   return list.includes(id) ? list.filter((x) => x !== id) : [...list, id];
 }

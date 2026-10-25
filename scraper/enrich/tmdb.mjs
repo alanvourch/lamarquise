@@ -187,6 +187,50 @@ async function details(id) {
 }
 
 /**
+ * Films coming to theatres in the next `days` days, for the "Sorties" strip: TMDB's Canadian list,
+ * thin on its own, plus the better known American releases (Montréal mostly follows US dates).
+ * @returns details, with the Canadian release date when TMDB has one
+ */
+export async function upcomingReleases({ days = 21, today = new Date().toISOString().slice(0, 10), log = console.log } = {}) {
+  const cache = await readJson(CACHE_FILE, { search: {}, details: {} });
+  const now = Date.now();
+  calls = 0;
+  const last = new Date(Date.parse(today) + days * 86400_000).toISOString().slice(0, 10);
+  const ids = new Set();
+  const lists = [
+    ['CA', 1, 2],
+    ['CA', 2, 2],
+    ['US', 1, 10],
+    ['US', 2, 10],
+  ];
+  for (const [region, page, minPopularity] of lists) {
+    try {
+      const { results = [], total_pages: pages = 1 } = await call('/movie/upcoming', { region, page, language: 'fr-CA' });
+      if (page > pages) continue;
+      for (const r of results) if ((r.popularity || 0) >= minPopularity) ids.add(r.id);
+    } catch (err) {
+      log(`  TMDB: sorties ${region} indisponibles (${err.message})`);
+    }
+  }
+  const out = [];
+  for (const id of ids) {
+    try {
+      const cached = cache.details[id];
+      if (!cached || cached.v !== DETAILS_VERSION || now - cached.at > DETAILS_TTL) {
+        cache.details[id] = { v: DETAILS_VERSION, at: now, movie: await details(id) };
+      }
+      const movie = cache.details[id].movie;
+      if (movie.releaseDate && movie.releaseDate > today && movie.releaseDate <= last) out.push(movie);
+    } catch (err) {
+      log(`  TMDB: sortie ${id} illisible (${err.message})`);
+    }
+  }
+  await writeJson(CACHE_FILE, cache);
+  log(`  TMDB: ${out.length} sorties à venir (${calls} appels)`);
+  return out.sort((a, b) => a.releaseDate.localeCompare(b.releaseDate));
+}
+
+/**
  * Matches films scraped from the cinemas to TMDB.
  * @param films  [{ key, title, originalTitle, altTitles, year, directors }]
  * @param overrides  { [titleKey]: tmdbId } for titles the search gets wrong

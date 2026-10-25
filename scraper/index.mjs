@@ -4,7 +4,7 @@
 import { fileURLToPath } from 'node:url';
 import SOURCES from './sources/index.mjs';
 import { CINEMA_EXTRAS } from './cinemas.mjs';
-import { isLatin, matchFilms, tmdbAvailable } from './enrich/tmdb.mjs';
+import { isLatin, matchFilms, tmdbAvailable, upcomingReleases } from './enrich/tmdb.mjs';
 import { imdbRatings } from './enrich/imdb.mjs';
 import { cleanTitle, titleKey } from './lib/labels.mjs';
 import { readJson, writeJson } from './lib/cache.mjs';
@@ -123,6 +123,18 @@ async function buildMovies(showtimes) {
     });
   }
 
+  // Films not in theatres yet: shown in the "Sorties" strip, with no showtimes.
+  const upcoming = [];
+  if (tmdbAvailable()) {
+    for (const t of await upcomingReleases({ log })) {
+      const id = `tmdb-${t.tmdbId}`;
+      upcoming.push(id);
+      if (movies.has(id)) continue;
+      const { tmdbRating, popularity, countries, ...rest } = t;
+      movies.set(id, { id, ...rest, imdbRating: null, imdbVotes: null });
+    }
+  }
+
   const ids = [...movies.values()].map((m) => m.imdbId).filter(Boolean);
   try {
     const ratings = await imdbRatings(ids);
@@ -135,7 +147,7 @@ async function buildMovies(showtimes) {
     log(`  IMDb: notes indisponibles (${err.message})`);
   }
   for (const [alias, key] of aliases) keyToId.set(alias, keyToId.get(key));
-  return { movies, keyToId };
+  return { movies, keyToId, upcoming };
 }
 
 // Unmatched films: the cinema's original title when it is readable, its French one besides.
@@ -176,7 +188,7 @@ async function main() {
   const only = process.argv.slice(2);
   log(`MontReel — collecte des séances (${DAYS} jours)`);
   const { cinemas, showtimes, status } = await runSources(only);
-  const { movies, keyToId } = await buildMovies(showtimes);
+  const { movies, keyToId, upcoming } = await buildMovies(showtimes);
 
   const seen = new Set();
   const out = [];
@@ -209,7 +221,8 @@ async function main() {
     sources: SOURCES.filter((s) => status.find((x) => x.id === s.id && (x.ok || x.kept))).map((s) => s.name),
     status,
     cinemas: cinemaList.sort((a, b) => a.name.localeCompare(b.name, 'fr')),
-    movies: [...movies.values()].filter((m) => used.has(m.id)),
+    movies: [...movies.values()].filter((m) => used.has(m.id) || upcoming.includes(m.id)),
+    upcoming,
     showtimes: out,
   };
   await writeJson(OUT, data);

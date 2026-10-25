@@ -1,8 +1,7 @@
 import { useRef, useEffect } from 'react';
 import { Chip, Icon } from './ui.jsx';
-import { SORTS, VERSIONS } from '../lib/filters.js';
+import { SORTS } from '../lib/filters.js';
 import { dayLabel } from '../lib/time.js';
-import { toggleIn } from '../lib/hooks.js';
 
 const VIEWS = [
   { id: 'films', label: 'Films' },
@@ -72,10 +71,20 @@ function SelectChip({ value, onChange, options, active, label }) {
   );
 }
 
-export function FilterBar({ filters, setFilters, favCount, genres, sort, setSort, showSort, onPickCinemas, watchCount }) {
+export function FilterBar({ filters, setFilters, favCount, sort, setSort, showSort, onPickCinemas, watchCount }) {
   const set = (patch) => setFilters((f) => ({ ...f, ...patch }));
   return (
     <div className="filterbar">
+      <Chip active={filters.watchlistOnly} onClick={() => set({ watchlistOnly: !filters.watchlistOnly })}>
+        <Icon name="heart" size={14} /> Ma liste{watchCount ? ` (${watchCount})` : ''}
+      </Chip>
+      <Chip
+        active={filters.cinemaMode === 'fav'}
+        onClick={() => (favCount ? set({ cinemaMode: filters.cinemaMode === 'fav' ? 'all' : 'fav' }) : onPickCinemas())}
+        title={favCount ? 'Seulement mes cinémas favoris' : 'Choisir mes cinémas favoris'}
+      >
+        <Icon name="star" size={14} /> Mes cinémas{favCount ? ` (${favCount})` : ''}
+      </Chip>
       {showSort && (
         <label className="chip chip--select chip--sort">
           <span className="sr-only">Trier par</span>
@@ -89,26 +98,6 @@ export function FilterBar({ filters, setFilters, favCount, genres, sort, setSort
           </select>
         </label>
       )}
-      <Chip
-        active={filters.cinemaMode === 'fav'}
-        onClick={() => (favCount ? set({ cinemaMode: filters.cinemaMode === 'fav' ? 'all' : 'fav' }) : onPickCinemas())}
-        title={favCount ? 'Seulement mes cinémas favoris' : 'Choisir mes cinémas favoris'}
-      >
-        <Icon name="star" size={14} /> Mes cinémas{favCount ? ` (${favCount})` : ''}
-      </Chip>
-      <span className="chip-group" role="group" aria-label="Version">
-        {VERSIONS.map((v) => (
-          <Chip
-            key={v.id}
-            active={filters.versions.includes(v.id)}
-            onClick={() => set({ versions: toggleIn(filters.versions, v.id) })}
-            title={v.title}
-            className={`chip--v chip--v-${v.id.toLowerCase()}`}
-          >
-            {v.id}
-          </Chip>
-        ))}
-      </span>
       <SelectChip
         label="Heure"
         value={filters.fromMinutes}
@@ -123,18 +112,6 @@ export function FilterBar({ filters, setFilters, favCount, genres, sort, setSort
         options={RATING_OPTIONS}
         onChange={(v) => set({ minRating: v == null ? null : Number(v) })}
       />
-      {genres.length > 0 && (
-        <SelectChip
-          label="Genre"
-          value={filters.genre}
-          active={!!filters.genre}
-          options={[{ value: '', label: 'Tous genres' }, ...genres.map((g) => ({ value: g, label: g }))]}
-          onChange={(v) => set({ genre: v })}
-        />
-      )}
-      <Chip active={filters.watchlistOnly} onClick={() => set({ watchlistOnly: !filters.watchlistOnly })}>
-        <Icon name="heart" size={14} /> Ma liste{watchCount ? ` (${watchCount})` : ''}
-      </Chip>
     </div>
   );
 }

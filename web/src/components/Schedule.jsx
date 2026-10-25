@@ -3,13 +3,17 @@ import { Icon, ImdbBadge, Poster, VersionBadge } from './ui.jsx';
 import { priceFor } from '../lib/filters.js';
 import { formatPriceLabel, priceTitle } from '../lib/format.js';
 import { dayLabel, formatTime, localParts, untilLabel } from '../lib/time.js';
+import { useProgressive } from '../lib/hooks.js';
 
 // Chronological list of every screening: "what can I catch tonight?"
+// Hundreds of rows on a full day: render the first ones at once, the rest while scrolling.
 export function Schedule({ showtimes, data, nowTs, today, settings, onOpen, multiDay }) {
+  const [shown, setSentinel] = useProgressive(showtimes);
   let lastHeading = null;
   return (
+    <>
     <ol className="schedule">
-      {showtimes.map((s) => {
+      {showtimes.slice(0, shown).map((s) => {
         const movie = data.movies.get(s.movieId);
         const cinema = data.cinemas.get(s.cinemaId);
         const price = priceFor(s, cinema, settings);
@@ -61,5 +65,7 @@ export function Schedule({ showtimes, data, nowTs, today, settings, onOpen, mult
         );
       })}
     </ol>
+    {shown < showtimes.length && <div ref={setSentinel} className="progressive-sentinel" aria-hidden="true" />}
+    </>
   );
 }

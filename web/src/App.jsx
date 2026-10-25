@@ -9,6 +9,7 @@ import { MovieSheet } from './components/MovieSheet.jsx';
 import { Schedule } from './components/Schedule.jsx';
 import { CinemaList, CinemaPicker } from './components/Cinemas.jsx';
 import { SettingsSheet } from './components/Settings.jsx';
+import { Releases } from './components/Releases.jsx';
 import { Icon } from './components/ui.jsx';
 
 const DEFAULT_SETTINGS = { cineplus: false, hidePast: true };
@@ -28,7 +29,9 @@ export default function App() {
 
   const [view, setView] = usePersistentState('view', 'films');
   const [sort, setSort] = usePersistentState('sort', 'next');
-  const [filters, setFilters] = usePersistentState('filters', DEFAULT_FILTERS);
+  const [storedFilters, setFilters] = usePersistentState('filters', DEFAULT_FILTERS);
+  // Version and genre filters are gone from the bar: choices saved by an earlier version no longer apply.
+  const filters = useMemo(() => ({ ...storedFilters, versions: [], genre: null }), [storedFilters]);
   const [settings, setSettings] = usePersistentState('settings', DEFAULT_SETTINGS);
   const [favCinemas, setFavCinemas] = usePersistentState('favCinemas', []);
   const [watchlist, setWatchlist] = usePersistentState('watchlist', []);
@@ -169,13 +172,13 @@ export default function App() {
               filters={filters}
               setFilters={setFilters}
               favCount={favCinemas.length}
-              genres={data.genres}
               sort={sort}
               setSort={setSort}
               showSort={view === 'films'}
               onPickCinemas={() => setPickerOpen(true)}
               watchCount={watchlist.length}
             />
+            {view === 'films' && !query && <Releases data={data} today={today} onOpen={openFilm} />}
             <div className="summary">
               <p>
                 <strong>{multiDay ? '7 prochains jours' : longDayLabel(activeDay)}</strong>
