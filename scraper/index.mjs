@@ -174,7 +174,7 @@ function mergeTranslatedTitles(films) {
 
 async function main() {
   const only = process.argv.slice(2);
-  log(`La Marquise — collecte des séances (${DAYS} jours)`);
+  log(`MontReel — collecte des séances (${DAYS} jours)`);
   const { cinemas, showtimes, status } = await runSources(only);
   const { movies, keyToId } = await buildMovies(showtimes);
 

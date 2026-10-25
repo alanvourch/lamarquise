@@ -1,4 +1,4 @@
-# La Marquise — les séances de Montréal
+# MontReel — les séances de Montréal
 
 Une app web (installable sur téléphone) qui rassemble les séances de **tous les cinémas de Montréal** au même endroit, dans l'esprit de LaBobine à Paris.
 
@@ -24,7 +24,7 @@ GitHub Actions, 2 fois par jour
        ├─ enrich/tmdb.mjs  titre québécois, affiche, synopsis FR, bande-annonce, id IMDb
        ├─ enrich/imdb.mjs  note + votes (dump officiel quotidien d'IMDb)
        └─ web/public/data/showtimes.json
-  └─ web/ (React + Vite) → site statique sur GitHub Pages
+  └─ web/ (React + Vite) → site statique publié sur Vercel (montreel.vercel.app)
 ```
 
 Pas de serveur ni de base de données : un fichier JSON régénéré chaque matin, servi par un site statique. Si une source tombe en panne, ses séances de la veille sont conservées jusqu'à la prochaine collecte réussie.
@@ -58,13 +58,14 @@ npm test                           # tests (parseurs des sources, normalisation,
 
 `TMDB_API_KEY` accepte une clé v3 ou un jeton de lecture v4.
 
-## Mise en ligne (GitHub Pages)
+## Mise en ligne (Vercel)
 
-1. Pousser ce dossier dans un dépôt GitHub.
-2. *Settings → Secrets and variables → Actions* : ajouter le secret `TMDB_API_KEY`.
-3. *Settings → Pages* : source = **GitHub Actions**.
-4. Le workflow `.github/workflows/update.yml` collecte, construit et publie vers 5 h et 11 h (heure de Montréal). On peut aussi le lancer à la main (*Actions → Run workflow*).
-5. Sur iPhone : ouvrir le site dans Safari, puis *Partager → Sur l'écran d'accueil*.
+GitHub Actions collecte et construit le site, puis l'envoie tel quel sur Vercel (aucun build côté Vercel).
+
+1. *Settings → Secrets and variables → Actions* : ajouter `TMDB_API_KEY` et `VERCEL_TOKEN` (jeton créé sur vercel.com/account/tokens).
+2. Le workflow `.github/workflows/update.yml` collecte, construit et publie vers 5 h et 11 h (heure de Montréal), et à chaque push sur `main`. On peut aussi le lancer à la main (*Actions → Run workflow*). Le projet Vercel `montreel` est créé au premier passage.
+3. L'adresse publique est fixée par `SITE_URL` dans le workflow (aperçus de liens partagés).
+4. Sur iPhone : ouvrir le site dans Safari, puis *Partager → Sur l'écran d'accueil*.
 
 ## Format des données
 

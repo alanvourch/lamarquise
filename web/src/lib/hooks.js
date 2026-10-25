@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-const PREFIX = 'lamarquise:';
+const PREFIX = 'montreel:';
 
 // Favorites and preferences live in this browser only; storage can be blocked, so never throw.
 export function usePersistentState(key, initial) {

@@ -11,15 +11,18 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: pages
+  group: deploy
   cancel-in-progress: false
 
+env:
+  # Production address on Vercel: asset paths and link previews are built for it.
+  SITE_URL: https://montreel.vercel.app
+  VERCEL_PROJECT: montreel
+
 jobs:
-  build:
+  build-deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -44,29 +47,22 @@ jobs:
           TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
         run: node scraper/index.mjs
 
-      # Public address of the site (custom domain included), for asset paths and link previews.
-      - id: pages
-        uses: actions/configure-pages@v5
-
       - name: Construire le site
         working-directory: web
         env:
-          BASE_PATH: ${{ steps.pages.outputs.base_path }}/
-          SITE_URL: ${{ steps.pages.outputs.base_url }}
+          BASE_PATH: /
         run: |
           npm ci
           npm run build
 
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: web/dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      # Static upload of web/dist; the project is created on the first run.
+      - name: Publier sur Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "::error::Secret VERCEL_TOKEN manquant (vercel.com/account/tokens, puis Settings → Secrets → Actions)."
+            exit 1
+          fi
+          npx --yes vercel@65.2.0 deploy web/dist --prod --yes \
+            --project "$VERCEL_PROJECT" --create-if-missing --token "$VERCEL_TOKEN"

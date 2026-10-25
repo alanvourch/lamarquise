@@ -102,15 +102,19 @@ export default function App() {
   };
 
   const movie = openMovie && data?.movies.get(openMovie);
+  // A shared film page starts with that film's title; follow the open sheet from there.
+  useEffect(() => {
+    document.title = movie ? `${movie.title} — MontReel` : 'MontReel — Séances à Montréal';
+  }, [movie]);
   const nFilters = activeFilterCount(filters) + (query ? 1 : 0);
 
   return (
     <div className="app">
       <header className="topbar" ref={headerRef}>
         <div className="topbar-row">
-          <a className="brand" href="./" aria-label="La Marquise, accueil">
+          <a className="brand" href="./" aria-label="MontReel, accueil">
             <span className="brand-mark" aria-hidden="true" />
-            <span className="brand-name">La Marquise</span>
+            <span className="brand-name">MontReel</span>
             <span className="brand-city">Montréal</span>
           </a>
           <nav className="viewnav">

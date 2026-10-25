@@ -1,7 +1,7 @@
 // After `vite build`: one static page per film (dist/film/<id>/index.html) so a shared link shows the
 // film's title, poster and showtimes in messaging apps, which read <meta> tags but never run the app.
 // The page is the app itself with other meta tags: opened in a browser, it shows that film's sheet.
-//   SITE_URL  public address of the site ("https://example.com/lamarquise"), for absolute og:url / og:image
+//   SITE_URL  public address of the site ("https://montreel.vercel.app"), for absolute og:url / og:image
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
@@ -18,7 +18,7 @@ const rating = (r) => r.toFixed(1).replace('.', ',');
 function metaTags({ title, description, image, url, large }) {
   const tags = [
     ['property', 'og:type', 'website'],
-    ['property', 'og:site_name', 'La Marquise'],
+    ['property', 'og:site_name', 'MontReel'],
     ['property', 'og:locale', 'fr_CA'],
     ['property', 'og:title', title],
     ['property', 'og:description', description],
@@ -64,7 +64,7 @@ try {
 
 // Home page: same tags with the app icon.
 const home = {
-  title: 'La Marquise — Séances à Montréal',
+  title: 'MontReel — Séances à Montréal',
   description: 'Toutes les séances de cinéma de Montréal au même endroit : notes IMDb, VO, VOSTF, VF, prix et bandes-annonces.',
   image: SITE ? `${SITE}/icon-512.png` : null,
   url: SITE ? `${SITE}/` : null,
@@ -83,7 +83,7 @@ for (const s of data.showtimes) {
 }
 for (const movie of data.movies) {
   const page = withMeta(html, {
-    title: `${movie.title}${movie.year ? ` (${movie.year})` : ''} — La Marquise`,
+    title: `${movie.title}${movie.year ? ` (${movie.year})` : ''} — MontReel`,
     description: filmDescription(movie, byMovie.get(movie.id) || [], cinemas),
     image: imageUrl(movie.poster, 'w500') || (SITE ? `${SITE}/icon-512.png` : null),
     url: SITE ? `${SITE}/film/${movie.id}/` : null,
