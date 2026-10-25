@@ -6,7 +6,8 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
 const DIST = fileURLToPath(new URL('../dist/', import.meta.url));
-const SITE = (process.env.SITE_URL || '').replace(/\/$/, '');
+// GitHub reports custom domains as http:// even when the site is served over https.
+const SITE = (process.env.SITE_URL || '').replace(/\/$/, '').replace(/^http:\/\//, 'https://');
 const TMDB_IMG = 'https://image.tmdb.org/t/p';
 
 const esc = (s) =>
