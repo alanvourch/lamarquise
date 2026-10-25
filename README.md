@@ -1,4 +1,4 @@
-# Pellicule — les séances de Montréal
+# La Marquise — les séances de Montréal
 
 Une app web (installable sur téléphone) qui rassemble les séances de **tous les cinémas de Montréal** au même endroit, dans l'esprit de LaBobine à Paris.
 

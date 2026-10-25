@@ -36,8 +36,8 @@ jobs:
           path: |
             .cache
             web/public/data
-          key: pellicule-${{ github.run_id }}
-          restore-keys: pellicule-
+          key: lamarquise-${{ github.run_id }}
+          restore-keys: lamarquise-
 
       - name: Collecter les séances
         env:

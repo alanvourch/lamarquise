@@ -124,7 +124,7 @@ async function buildMovies(showtimes) {
 
 async function main() {
   const only = process.argv.slice(2);
-  log(`Pellicule — collecte des séances (${DAYS} jours)`);
+  log(`La Marquise — collecte des séances (${DAYS} jours)`);
   const { cinemas, showtimes, status } = await runSources(only);
   const { movies, keyToId } = await buildMovies(showtimes);
 
