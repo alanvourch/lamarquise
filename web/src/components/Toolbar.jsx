@@ -4,9 +4,9 @@ import { SORTS } from '../lib/filters.js';
 import { dayLabel } from '../lib/time.js';
 
 const VIEWS = [
-  { id: 'films', label: 'Films' },
-  { id: 'seances', label: 'Séances' },
-  { id: 'cinemas', label: 'Cinémas' },
+  { id: 'films', label: 'Films', icon: 'film' },
+  { id: 'seances', label: 'Séances', icon: 'ticket' },
+  { id: 'cinemas', label: 'Cinémas', icon: 'pin' },
 ];
 
 const FROM_OPTIONS = [
@@ -48,8 +48,23 @@ export function ViewSwitch({ view, setView }) {
   return (
     <div className="segmented" role="tablist" aria-label="Affichage">
       {VIEWS.map((v) => (
-        <button key={v.id} role="tab" aria-selected={view === v.id} onClick={() => setView(v.id)}>
-          {v.label}
+        <button
+          key={v.id}
+          role="tab"
+          aria-selected={view === v.id}
+          onClick={() => {
+            if (view === v.id) {
+              window.scrollTo({
+                top: 0,
+                behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
+              });
+            } else {
+              setView(v.id);
+            }
+          }}
+        >
+          <span className="view-icon"><Icon name={v.icon} size={21} /></span>
+          <span>{v.label}</span>
         </button>
       ))}
     </div>

@@ -220,6 +220,10 @@ a {
 }
 
 .segmented button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
   border: 0;
   background: transparent;
   padding: 7px 16px;
@@ -227,38 +231,77 @@ a {
   font-weight: 600;
   font-size: 14px;
   color: var(--text-2);
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  touch-action: manipulation;
+  transition: color 160ms ease, background 160ms ease, transform 160ms ease;
 }
 
 .segmented button[aria-selected='true'] {
-  background: var(--text);
-  color: var(--bg);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.segmented button:focus:not(:focus-visible) {
+  outline: none;
+}
+
+.view-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (hover: hover) {
+  .segmented button:hover {
+    color: var(--accent);
+  }
 }
 
 @media (max-width: 719px) {
   .viewnav {
     position: fixed;
     z-index: 30;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    padding: 8px 16px max(10px, env(safe-area-inset-bottom));
-    background: color-mix(in srgb, var(--bg) 90%, transparent);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border-top: 1px solid var(--border);
+    left: 50%;
+    width: calc(100% - 32px);
+    max-width: 420px;
+    transform: translateX(-50%);
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    padding: 6px;
+    border-radius: 26px;
+    background: color-mix(in srgb, var(--surface) 94%, transparent);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid color-mix(in srgb, var(--text) 12%, transparent);
+    box-shadow: 0 8px 32px rgb(0 0 0 / 0.18), 0 2px 8px rgb(0 0 0 / 0.08);
   }
 
   .viewnav .segmented {
     display: flex;
+    gap: 4px;
+    padding: 0;
+    border: 0;
+    background: transparent;
   }
 
   .viewnav .segmented button {
     flex: 1;
-    padding: 9px 0;
+    flex-direction: column;
+    gap: 4px;
+    min-height: 62px;
+    padding: 7px 0;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 650;
+    letter-spacing: 0.01em;
+  }
+
+  .viewnav .segmented button:active {
+    transform: scale(0.96);
   }
 
   .content {
-    padding-bottom: 96px;
+    padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
   }
 }
 
