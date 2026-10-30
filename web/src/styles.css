@@ -209,6 +209,11 @@ a {
   padding: 4px 16px 40px;
 }
 
+.daynav {
+  padding: 0 16px 8px;
+  border-bottom: 1px solid var(--border);
+}
+
 /* ---------- View switch ---------- */
 
 .segmented {
@@ -286,12 +291,12 @@ a {
 
   .viewnav .segmented button {
     flex: 1;
-    flex-direction: column;
-    gap: 4px;
-    min-height: 62px;
+    flex-direction: row;
+    gap: 6px;
+    min-height: 44px;
     padding: 7px 0;
     border-radius: 20px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 650;
     letter-spacing: 0.01em;
   }
@@ -301,11 +306,17 @@ a {
   }
 
   .content {
-    padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(94px + env(safe-area-inset-bottom, 0px));
   }
 }
 
 /* ---------- Search ---------- */
+
+@media (max-width: 380px) {
+  .brand-city {
+    display: none;
+  }
+}
 
 .search {
   display: flex;
@@ -1190,7 +1201,7 @@ a.st:hover {
   position: sticky;
   top: var(--sticky-offset, 104px);
   z-index: 5;
-  padding: 14px 0 6px;
+  padding: 0;
   font-family: var(--display);
   font-size: 18px;
   font-weight: 600;
@@ -1204,7 +1215,10 @@ a.st:hover {
   width: 100%;
   border: 0;
   background: none;
-  padding: 0;
+  padding: 14px 0;
+  min-height: 48px;
+  border-bottom: 1px solid var(--border);
+  -webkit-tap-highlight-color: transparent;
   color: inherit;
   font: inherit;
   text-align: left;
@@ -1245,13 +1259,14 @@ a.st:hover {
   flex: 1;
   min-width: 0;
   display: grid;
-  grid-template-columns: 76px 44px 1fr;
+  grid-template-columns: 56px 1fr 16px;
   align-items: center;
   gap: 12px;
   padding: 10px 0;
   border: 0;
   background: none;
   text-align: left;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .srow-time {
@@ -1271,8 +1286,8 @@ a.st:hover {
 }
 
 .srow-poster {
-  width: 44px;
-  height: 66px;
+  width: 48px;
+  height: 72px;
   border-radius: 7px;
 }
 

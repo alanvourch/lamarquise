@@ -36,10 +36,11 @@ export default function App() {
   const [favCinemas, setFavCinemas] = usePersistentState('favCinemas', []);
   const [watchlist, setWatchlist] = usePersistentState('watchlist', []);
   const [day, setDay] = useState(null);
-  const [foldedHours, setFoldedHours] = useState({}); // { [day]: [hour labels] }
+  const [expandedHours, setExpandedHours] = useState({}); // { [day]: [hour keys] }
   const [query, setQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [openMovie, setOpenMovie] = useState(filmFromHash);
+  const [openMovieDay, setOpenMovieDay] = useState(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
 
@@ -65,8 +66,9 @@ export default function App() {
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
   }, []);
-  const openFilm = useCallback((id) => {
+  const openFilm = useCallback((id, day = null) => {
     history.pushState({ film: id }, '', `#film=${encodeURIComponent(id)}`);
+    setOpenMovieDay(day);
     setOpenMovie(id);
   }, []);
   const closeFilm = useCallback(() => {
@@ -156,8 +158,12 @@ export default function App() {
             )}
           </div>
         )}
-        {data && <DayTabs days={days} day={activeDay} setDay={setDay} today={today} />}
       </header>
+      {data && (
+        <div className="daynav">
+          <DayTabs days={days} day={activeDay} setDay={setDay} today={today} />
+        </div>
+      )}
 
       <main className="content">
         {error && (
@@ -208,14 +214,13 @@ export default function App() {
             ) : view === 'seances' ? (
               <Schedule
                 showtimes={showtimes}
-                folded={new Set(foldedHours[activeDay] || [])}
-                onToggleHour={(label) =>
-                  setFoldedHours((f) => ({ ...f, [activeDay]: toggleIn(f[activeDay] || [], label) }))
+                expanded={new Set(expandedHours[activeDay] || [])}
+                onToggleHour={(key) =>
+                  setExpandedHours((f) => ({ ...f, [activeDay]: toggleIn(f[activeDay] || [], key) }))
                 }
                 data={data}
                 nowTs={now.getTime()}
                 today={today}
-                settings={settings}
                 onOpen={openFilm}
                 multiDay={multiDay}
               />
@@ -266,7 +271,7 @@ export default function App() {
           data={data}
           nowTs={now.getTime()}
           today={today}
-          initialDay={multiDay ? today : activeDay}
+          initialDay={openMovieDay || (multiDay ? today : activeDay)}
           settings={settings}
           favCinemas={favCinemas}
           onToggleCinema={toggleCinema}
