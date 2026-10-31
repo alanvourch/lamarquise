@@ -1,6 +1,7 @@
 import { Sheet } from './ui.jsx';
+import { formatDateTime } from '../lib/time.js';
 
-export function SettingsSheet({ open, onClose, settings, setSettings, onPickCinemas, onReset }) {
+export function SettingsSheet({ open, onClose, settings, setSettings, onPickCinemas, onReset, generatedAt }) {
   const set = (patch) => setSettings((s) => ({ ...s, ...patch }));
   return (
     <Sheet open={open} onClose={onClose} label="Réglages">
@@ -29,7 +30,7 @@ export function SettingsSheet({ open, onClose, settings, setSettings, onPickCine
         <button className="btn btn--ghost btn--block" onClick={onReset}>
           Réinitialiser les filtres
         </button>
-        <p className="muted small">Favoris et réglages sont enregistrés dans ce navigateur.</p>
+        {generatedAt && <p className="muted small">Programme mis à jour le {formatDateTime(generatedAt)}.</p>}
       </div>
     </Sheet>
   );

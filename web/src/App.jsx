@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { loadData } from './lib/data.js';
 import { DEFAULT_FILTERS, activeFilterCount, filterShowtimes, groupByMovie, sortGroups } from './lib/filters.js';
 import { toggleIn, useNow, usePersistentState } from './lib/hooks.js';
-import { dayKey, formatDateTime, longDayLabel } from './lib/time.js';
+import { dayKey, longDayLabel } from './lib/time.js';
 import { DayTabs, FilterBar, ViewSwitch } from './components/Toolbar.jsx';
 import { MovieCard } from './components/MovieCard.jsx';
 import { MovieSheet } from './components/MovieSheet.jsx';
@@ -261,14 +261,7 @@ export default function App() {
               </>
             )}
 
-            <footer className="footer">
-              <p>Programme mis à jour le {formatDateTime(data.generatedAt)}.</p>
-              {data.sources.length > 0 && <p>Sources : {data.sources.join(', ')}.</p>}
-              <p>
-                Notes : IMDb. Affiches et résumés : TMDB. Ce produit utilise l'API TMDB sans être approuvé ni certifié
-                par TMDB. Vérifie l'horaire sur le site du cinéma avant de partir.
-              </p>
-            </footer>
+
           </>
         )}
       </main>
@@ -299,6 +292,7 @@ export default function App() {
         />
       )}
       <SettingsSheet
+        generatedAt={data?.generatedAt}
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
         settings={settings}
