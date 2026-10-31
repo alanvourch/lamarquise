@@ -1,5 +1,5 @@
 import { Fragment, useMemo } from 'react';
-import { Icon, ImdbBadge, Poster, VersionBadge } from './ui.jsx';
+import { Icon, ImdbBadge, Poster, ReleaseBadge, VersionBadge } from './ui.jsx';
 import { dayLabel, formatTime, untilLabel } from '../lib/time.js';
 import { groupScheduleHours } from '../lib/schedule.js';
 
@@ -51,6 +51,7 @@ function ScheduleRow({ group, data, nowTs, today, onOpen }) {
             {until && <small className="muted">{until}</small>}
           </span>
           <span className="srow-sub">
+            <ReleaseBadge movie={movie} today={today} />
             <ImdbBadge movie={movie} />
             {[...group.versions].map((version) => <VersionBadge key={version} version={version} small />)}
           </span>

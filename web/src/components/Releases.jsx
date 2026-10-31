@@ -1,33 +1,37 @@
 import { useMemo } from 'react';
-import { Poster } from './ui.jsx';
-import { addDays, releaseLabel } from '../lib/time.js';
+import { Poster, ReleaseBadge } from './ui.jsx';
+import { releaseStatus, releaseLabel } from '../lib/time.js';
 
-// "Sorties": films that opened this week, then what comes to theatres in the next three weeks.
-export function Releases({ data, today, onOpen }) {
+// Recent theatrical releases and all known future releases, independent of day filters.
+export function Releases({ data, today, onOpen, query = '' }) {
   const items = useMemo(() => {
     const showing = new Set(data.showtimes.map((s) => s.movieId));
-    const since = addDays(today, -6);
-    const recent = [...data.movies.values()].filter(
-      (m) => showing.has(m.id) && m.releaseDate && m.releaseDate >= since && m.releaseDate <= today,
-    );
-    const coming = data.upcoming.map((id) => data.movies.get(id)).filter((m) => m && m.releaseDate > today);
-    return [...recent, ...coming].sort((a, b) => a.releaseDate.localeCompare(b.releaseDate));
-  }, [data, today]);
+    const upcoming = new Set(data.upcoming);
+    const search = query.trim().toLocaleLowerCase('fr');
+    return [...data.movies.values()].filter((movie) => {
+      const status = releaseStatus(movie.releaseDate, today);
+      if (!status || (!showing.has(movie.id) && !upcoming.has(movie.id))) return false;
+      return !search || [movie.title, movie.titleFr, movie.originalTitle, ...(movie.directors || []), ...(movie.cast || [])]
+        .filter(Boolean).some((value) => value.toLocaleLowerCase('fr').includes(search));
+    }).sort((a, b) => a.releaseDate.localeCompare(b.releaseDate));
+  }, [data, today, query]);
 
-  if (!items.length) return null;
   return (
     <section className="releases" aria-labelledby="releases-title">
-      <h2 id="releases-title" className="releases-title">
+      <h1 id="releases-title" className="releases-title">
         Sorties
-      </h2>
+      </h1>
+      <p className="muted">Les nouveautés des sept derniers jours et les prochaines sorties en salle.</p>
+      {!items.length && <p className="empty">Aucune sortie{query ? " pour cette recherche" : " annoncée pour le moment"}.</p>}
       <div className="releases-row">
         {items.map((movie) => {
           const out = movie.releaseDate <= today;
           return (
             <button key={movie.id} className="release" onClick={() => onOpen(movie.id)}>
               <Poster movie={movie} size="w185" className="release-poster" />
+              <ReleaseBadge movie={movie} today={today} />
               <span className={`release-date ${out ? 'release-date--out' : ''}`}>
-                {out ? 'Nouveau' : releaseLabel(movie.releaseDate, today)}
+                {releaseLabel(movie.releaseDate, today)}
               </span>
               <span className="release-title">{movie.title}</span>
             </button>

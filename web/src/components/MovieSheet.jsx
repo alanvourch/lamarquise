@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Icon, Poster, ScoreLinks, Sheet, VersionBadge } from './ui.jsx';
+import { Icon, Poster, ReleaseBadge, ScoreLinks, Sheet, VersionBadge } from './ui.jsx';
 import { GRACE_MS, priceFor } from '../lib/filters.js';
 import { formatPriceLabel, img, priceTitle } from '../lib/format.js';
 import { dayLabel, formatRuntime, formatTime, longDayLabel } from '../lib/time.js';
@@ -113,6 +113,7 @@ export function MovieSheet({ movie, data, nowTs, today, initialDay, settings, fa
           <Poster movie={movie} className="msheet-poster" />
           <div className="msheet-titles">
             <h2>{movie.title}</h2>
+            <ReleaseBadge movie={movie} today={today} />
             {subtitle && <p className="msheet-original">{subtitle}</p>}
             <p className="msheet-facts">{facts.join(' · ')}</p>
             <ScoreLinks movie={movie} />

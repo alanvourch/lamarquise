@@ -101,3 +101,10 @@ export function formatDateTime(iso) {
   const date = new Date(iso);
   return `${longDayLabel(dayKey(date))} à ${formatTime(date)}`;
 }
+
+/** Seven rolling days including today; future dates stay marked until release. */
+export function releaseStatus(releaseDate, today) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(releaseDate || '')) return null;
+  if (releaseDate > today) return 'À venir';
+  return releaseDate >= addDays(today, -6) ? 'Nouveau' : null;
+}

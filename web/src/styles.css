@@ -263,8 +263,17 @@ a {
   }
 }
 
-@media (max-width: 719px) {
-  .viewnav {
+.viewnav--mobile {
+  display: none;
+}
+
+@media (max-width: 899px) {
+  .viewnav--desktop {
+    display: none;
+  }
+
+  .viewnav--mobile {
+    display: block;
     position: fixed;
     z-index: 30;
     left: 50%;
@@ -291,9 +300,9 @@ a {
 
   .viewnav .segmented button {
     flex: 1;
-    flex-direction: row;
-    gap: 6px;
-    min-height: 44px;
+    flex-direction: column;
+    gap: 3px;
+    min-height: 48px;
     padding: 7px 0;
     border-radius: 20px;
     font-size: 12px;
@@ -1629,23 +1638,14 @@ a.st:hover {
 }
 
 .releases-row {
-  display: flex;
-  gap: 12px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  margin: 0 -16px;
-  padding: 0 16px 6px;
-  scroll-padding: 0 16px;
-  scroll-snap-type: x proximity;
-}
-
-.releases-row::-webkit-scrollbar {
-  display: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 24px 16px;
 }
 
 .release {
   flex: none;
-  width: 104px;
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -1659,7 +1659,7 @@ a.st:hover {
 }
 
 .release-poster {
-  width: 104px;
+  width: 100%;
   height: auto;
   aspect-ratio: 2 / 3;
   border-radius: 10px;
@@ -1685,4 +1685,16 @@ a.st:hover {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.release-badge {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 3px 7px;
+  border-radius: 6px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.3;
 }

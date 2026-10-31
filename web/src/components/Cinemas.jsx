@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Icon, ImdbBadge, Poster, Sheet, VersionBadge } from './ui.jsx';
+import { Icon, ImdbBadge, Poster, ReleaseBadge, Sheet, VersionBadge } from './ui.jsx';
 import { formatPrice } from '../lib/format.js';
 import { CINEPLUS_PRICES } from '../lib/filters.js';
 import { formatTime, shortDayLabel } from '../lib/time.js';
@@ -115,6 +115,7 @@ export function CinemaList({ showtimes, data, favCinemas, onToggleCinema, onOpen
                       <Poster movie={movie} size="w154" className="cinema-movie-poster" />
                       <span className="cinema-movie-info">
                         <span className="cinema-movie-title">{movie.title}</span>
+                        <ReleaseBadge movie={movie} today={today} />
                         <ImdbBadge movie={movie} />
                       </span>
                     </button>

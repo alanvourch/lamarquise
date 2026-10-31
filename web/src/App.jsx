@@ -123,7 +123,7 @@ export default function App() {
             <span className="brand-name">MontReel</span>
             <span className="brand-city">Montréal</span>
           </a>
-          <nav className="viewnav">
+          <nav className="viewnav viewnav--desktop" aria-label="Navigation principale">
             <ViewSwitch view={view} setView={setView} />
           </nav>
           <div className="topbar-actions">
@@ -159,7 +159,11 @@ export default function App() {
           </div>
         )}
       </header>
-      {data && (
+      {/* Outside the blurred sticky header: Safari must anchor this to the viewport. */}
+      <nav className="viewnav viewnav--mobile" aria-label="Navigation principale">
+        <ViewSwitch view={view} setView={setView} />
+      </nav>
+      {data && view !== 'sorties' && (
         <div className="daynav">
           <DayTabs days={days} day={activeDay} setDay={setDay} today={today} />
         </div>
@@ -175,81 +179,86 @@ export default function App() {
         {!data && !error && <div className="loading" aria-label="Chargement" />}
         {data && (
           <>
-            <FilterBar
-              filters={filters}
-              setFilters={setFilters}
-              favCount={favCinemas.length}
-              sort={sort}
-              setSort={setSort}
-              showSort={view === 'films'}
-              onPickCinemas={() => setPickerOpen(true)}
-              watchCount={watchlist.length}
-            />
-            {view === 'films' && !query && <Releases data={data} today={today} onOpen={openFilm} />}
-            <div className="summary">
-              <p>
-                <strong>{multiDay ? '7 prochains jours' : longDayLabel(activeDay)}</strong>
-                <span>
-                  {groups.length} film{groups.length > 1 ? 's' : ''} · {showtimes.length} séance
-                  {showtimes.length > 1 ? 's' : ''}
-                </span>
-              </p>
-              {nFilters > 0 && (
-                <button className="textlink" onClick={resetFilters}>
-                  Effacer les filtres ({nFilters})
-                </button>
-              )}
-            </div>
-
-            {showtimes.length === 0 ? (
-              <div className="empty">
-                <h2>Aucune séance</h2>
-                <p className="muted">Rien ne correspond à ces filtres pour ce jour.</p>
-                {nFilters > 0 && (
-                  <button className="btn" onClick={resetFilters}>
-                    Effacer les filtres
-                  </button>
-                )}
-              </div>
-            ) : view === 'seances' ? (
-              <Schedule
-                showtimes={showtimes}
-                expanded={new Set(expandedHours[activeDay] || [])}
-                onToggleHour={(key) =>
-                  setExpandedHours((f) => ({ ...f, [activeDay]: toggleIn(f[activeDay] || [], key) }))
-                }
-                data={data}
-                nowTs={now.getTime()}
-                today={today}
-                onOpen={openFilm}
-                multiDay={multiDay}
-              />
-            ) : view === 'cinemas' ? (
-              <CinemaList
-                showtimes={showtimes}
-                data={data}
-                favCinemas={favCinemas}
-                onToggleCinema={toggleCinema}
-                onOpen={openFilm}
-                settings={settings}
-                today={today}
-                multiDay={multiDay}
-              />
+            {view === 'sorties' ? (
+              <Releases data={data} today={today} onOpen={openFilm} query={query} />
             ) : (
-              <div className="grid">
-                {groups.map((g) => (
-                  <MovieCard
-                    key={g.movie.id}
-                    group={g}
-                    cinemas={data.cinemas}
+              <>
+                <FilterBar
+                  filters={filters}
+                  setFilters={setFilters}
+                  favCount={favCinemas.length}
+                  sort={sort}
+                  setSort={setSort}
+                  showSort={view === 'films'}
+                  onPickCinemas={() => setPickerOpen(true)}
+                  watchCount={watchlist.length}
+                />
+                <div className="summary">
+                  <p>
+                    <strong>{multiDay ? '7 prochains jours' : longDayLabel(activeDay)}</strong>
+                    <span>
+                      {groups.length} film{groups.length > 1 ? 's' : ''} · {showtimes.length} séance
+                      {showtimes.length > 1 ? 's' : ''}
+                    </span>
+                  </p>
+                  {nFilters > 0 && (
+                    <button className="textlink" onClick={resetFilters}>
+                      Effacer les filtres ({nFilters})
+                    </button>
+                  )}
+                </div>
+
+                {showtimes.length === 0 ? (
+                  <div className="empty">
+                    <h2>Aucune séance</h2>
+                    <p className="muted">Rien ne correspond à ces filtres pour ce jour.</p>
+                    {nFilters > 0 && (
+                      <button className="btn" onClick={resetFilters}>
+                        Effacer les filtres
+                      </button>
+                    )}
+                  </div>
+                ) : view === 'seances' ? (
+                  <Schedule
+                    showtimes={showtimes}
+                    expanded={new Set(expandedHours[activeDay] || [])}
+                    onToggleHour={(key) =>
+                      setExpandedHours((f) => ({ ...f, [activeDay]: toggleIn(f[activeDay] || [], key) }))
+                    }
+                    data={data}
+                    nowTs={now.getTime()}
+                    today={today}
                     onOpen={openFilm}
-                    inWatchlist={watchlist.includes(g.movie.id)}
-                    onToggleWatch={toggleWatch}
+                    multiDay={multiDay}
+                  />
+                ) : view === 'cinemas' ? (
+                  <CinemaList
+                    showtimes={showtimes}
+                    data={data}
+                    favCinemas={favCinemas}
+                    onToggleCinema={toggleCinema}
+                    onOpen={openFilm}
+                    settings={settings}
                     today={today}
                     multiDay={multiDay}
                   />
-                ))}
-              </div>
+                ) : (
+                  <div className="grid">
+                    {groups.map((g) => (
+                      <MovieCard
+                        key={g.movie.id}
+                        group={g}
+                        cinemas={data.cinemas}
+                        onOpen={openFilm}
+                        inWatchlist={watchlist.includes(g.movie.id)}
+                        onToggleWatch={toggleWatch}
+                        today={today}
+                        multiDay={multiDay}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
             )}
 
             <footer className="footer">

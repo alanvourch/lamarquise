@@ -6,6 +6,7 @@ import { dayLabel } from '../lib/time.js';
 const VIEWS = [
   { id: 'films', label: 'Films', icon: 'film' },
   { id: 'seances', label: 'Séances', icon: 'ticket' },
+  { id: 'sorties', label: 'Sorties', icon: 'sparkles' },
   { id: 'cinemas', label: 'Cinémas', icon: 'pin' },
 ];
 

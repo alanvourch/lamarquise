@@ -1,4 +1,4 @@
-import { Icon, ImdbBadge, Poster, VersionBadge } from './ui.jsx';
+import { Icon, ImdbBadge, Poster, ReleaseBadge, VersionBadge } from './ui.jsx';
 import { VERSIONS } from '../lib/filters.js';
 import { formatRuntime, formatTime, shortDayLabel } from '../lib/time.js';
 
@@ -21,6 +21,7 @@ export function MovieCard({ group, cinemas, onOpen, inWatchlist, onToggleWatch, 
           <h3 className="card-title">{movie.title}</h3>
           {meta && <p className="card-meta">{meta}</p>}
           <div className="card-versions">
+            <ReleaseBadge movie={movie} today={today} />
             {VERSION_ORDER.filter((v) => versions.has(v)).map((v) => (
               <VersionBadge key={v} version={v} small />
             ))}

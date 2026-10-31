@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'react';
+import { releaseStatus } from '../lib/time.js';
 import { formatRating, formatVotes, img } from '../lib/format.js';
 
 const PATHS = {
+  sparkles: 'm12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5L12 3ZM20 2v4M18 4h4',
   heart:
     'M12 20.5s-7.5-4.6-9.6-9.2C.9 7.9 3 4.5 6.5 4.5c2.1 0 3.5 1.2 4.3 2.4.4.6 1.9.6 2.4 0 .8-1.2 2.2-2.4 4.3-2.4 3.5 0 5.6 3.4 4.1 6.8-2.1 4.6-9.6 9.2-9.6 9.2Z',
   star: 'm12 3.2 2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 17l-5.4 2.9 1.1-6.1-4.5-4.2 6.1-.8L12 3.2Z',
@@ -146,4 +148,10 @@ export function Chip({ active, onClick, children, title, className = '' }) {
       {children}
     </button>
   );
+}
+
+export function ReleaseBadge({ movie, today }) {
+  const label = releaseStatus(movie.releaseDate, today);
+  if (!label) return null;
+  return <span className="release-badge">{label}</span>;
 }
