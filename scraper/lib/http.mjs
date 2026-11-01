@@ -3,7 +3,7 @@ const UA =
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-export async function request(url, { headers = {}, retries = 2, timeoutMs = 20_000, ...init } = {}) {
+export async function request(url, { headers = {}, retries = 2, timeoutMs = 20_000, acceptedStatuses = [], ...init } = {}) {
   let lastError;
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
@@ -13,7 +13,7 @@ export async function request(url, { headers = {}, retries = 2, timeoutMs = 20_0
         signal: AbortSignal.timeout(timeoutMs),
       });
       if (res.status === 429 || res.status >= 500) throw new Error(`HTTP ${res.status} ${url}`);
-      if (!res.ok) {
+      if (!res.ok && !acceptedStatuses.includes(res.status)) {
         const err = new Error(`HTTP ${res.status} ${url}`);
         err.status = res.status;
         err.fatal = true;

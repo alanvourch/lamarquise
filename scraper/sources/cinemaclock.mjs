@@ -7,7 +7,8 @@
 // fie = English, fio = other) and its notes the subtitles ("avec s.-t. fr."), the screen
 // ("Écran IMAX", "UltraAVX") or "Version 3D".
 import { getText } from '../lib/http.mjs';
-import { chunks, text } from '../lib/html.mjs';
+import { attr, chunks, text } from '../lib/html.mjs';
+import { resolveBookings } from '../lib/booking.mjs';
 import { detectFormats, normalizeVersion } from '../lib/labels.mjs';
 import { addDays, montrealIso, monthNumber, nearestYmd, todayYmd } from '../lib/time.mjs';
 
@@ -72,11 +73,14 @@ export function parseTheatre(html) {
       const ref = `${earliest[1]}-${earliest[2]}-${earliest[3]}`;
       const screenings = [];
       let date = ref;
-      for (const m of pres.matchAll(/<span class="timesdate">([^<]+)<\/span>|data-time="(\d{3,4})"/g)) {
+      for (const m of pres.matchAll(/<span class="timesdate">([^<]+)<\/span>|<span\b([^>]*\bdata-time=["'](\d{3,4})["'][^>]*)>/g)) {
         if (m[1]) date = dateOf(m[1], ref) || date;
         else {
-          const t = m[2].padStart(4, '0');
-          screenings.push({ date, time: [Number(t.slice(0, 2)), Number(t.slice(2))] });
+          const t = m[3].padStart(4, '0');
+          const ticket = attr(m[2], 'id');
+          screenings.push({ date, time: [Number(t.slice(0, 2)), Number(t.slice(2))],
+            ...(/^tix\d+$/.test(ticket || '') ? { bookingUrl: `${BASE}/buy-tickets/${ticket}` } : {}),
+          });
         }
       }
       const formats = detectFormats(notes, classes.includes('filimax') && 'IMAX', classes.includes('fil3d') && '3D');
@@ -154,13 +158,14 @@ export function cinemaclockSource({ id, name, chain = null, cineplus = false, th
                 start: montrealIso(s.date, s.time),
                 version: p.version,
                 formats: p.formats,
-                bookingUrl: t.url || `${BASE}/movie-theaters/${t.slug}`,
+                bookingUrl: s.bookingUrl || t.url || `${BASE}/movie-theaters/${t.slug}`,
                 film,
               });
             }
           }
         }
       }
+      if (chain === 'Cineplex') await resolveBookings(showtimes, { log });
       return { cinemas, showtimes };
     },
   };

@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { unflatten } from '../lib/devalue.mjs';
 import { parseTheatre, versionOf } from './cinemaclock.mjs';
 import { daysMatching, parseSchedule, weekDates } from './guzzo.mjs';
-import { parseMonth } from './moderne.mjs';
+import { parseMonth, parseTicketSessions } from './moderne.mjs';
 import { parseFilmPage } from './public.mjs';
 
 test('devalue payloads', () => {
@@ -58,6 +58,12 @@ test('Cinéma Public film page', () => {
   assert.equal(screenings[1].venue, 'livart');
   assert.equal(screenings[1].date, '2026-11-02');
   assert.equal(screenings[1].version, 'VO');
+});
+
+test('Moderne ticket listings match a purchasable session by date and time', () => {
+  const row = (day, time, ticket) => `<tr><td><span class="contenu"><strong>${day}</strong><br />NOV<br /><span class="calendrier-annee">2026</span></span><span class="pied">${time}</span></td><td><a href="prix.cfm?RepresentationID=1">Prix</a>${ticket ? '<a href="../achat/index.cfm?RepresentationID=46154">Acheter</a>' : 'Complet'}</td></tr>`;
+  const sessions = parseTicketSessions(row(9, '21 h', true) + row(10, '18 h 15', false), 'https://cinemamoderne.ticketacces.net/fr/organisation/representations/index.cfm?EvenementID=21216');
+  assert.deepEqual([...sessions], [['2026-11-09T21:00:00-05:00', 'https://cinemamoderne.ticketacces.net/fr/organisation/achat/index.cfm?RepresentationID=46154']]);
 });
 
 test('Guzzo weekly schedule', () => {
@@ -114,5 +120,18 @@ test('Cinemaclock theatre page', () => {
     { date: '2026-10-24', time: [19, 10] },
     { date: '2026-10-25', time: [13, 10] },
     { date: '2026-10-25', time: [22, 0] },
+  ]);
+});
+
+test('Cinemaclock keeps ticket IDs attached to their own date and presentation', () => {
+  const html = `<div id="moviecin1"><h3 class='movietitle'><a href='/movies/the-shining-1980'>The Shining</a></h3>
+    <div data-earliest-date="20261031" class="filall fie1"><p class="timesalso">with French subtitles</p>
+    <span class="timesdate">31 oct.</span><span id="tix123" class="tix" data-time="2115">21:15</span>
+    <span class="timesdate">1 nov.</span><span class="tix" data-time="1930" id="tix456">19:30</span>
+    <span class="notix" data-time="2200">22:00</span></div></div>`;
+  assert.deepEqual(parseTheatre(html).movies[0].presentations[0].screenings, [
+    { date: '2026-10-31', time: [21, 15], bookingUrl: 'https://www.cinemaclock.com/buy-tickets/tix123' },
+    { date: '2026-11-01', time: [19, 30], bookingUrl: 'https://www.cinemaclock.com/buy-tickets/tix456' },
+    { date: '2026-11-01', time: [22, 0] },
   ]);
 });

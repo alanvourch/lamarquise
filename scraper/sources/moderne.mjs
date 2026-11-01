@@ -1,9 +1,9 @@
 // Cinéma Moderne (Mile End): a WordPress site with a monthly calendar at /horaire/YYYY/MM/.
 // Each event carries the time, title and version, plus a card with credits and a ticket link.
-import { getText } from '../lib/http.mjs';
+import { getText, mapLimit } from '../lib/http.mjs';
 import { attr, chunks, text } from '../lib/html.mjs';
 import { detectFormats, normalizeVersion } from '../lib/labels.mjs';
-import { addDays, montrealIso, todayYmd } from '../lib/time.mjs';
+import { addDays, montrealIso, monthNumber, todayYmd } from '../lib/time.mjs';
 
 const BASE = 'https://www.cinemamoderne.com';
 const CINEMA = {
@@ -57,10 +57,34 @@ export function parseMonth(html) {
   return out;
 }
 
+export function parseTicketSessions(html, url) {
+  const sessions = new Map();
+  for (const row of html.matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)) {
+    const date = row[1].match(/class="contenu">\s*<strong>(\d+)<\/strong><br\s*\/>\s*([^<]+)<br\s*\/>\s*<span class="calendrier-annee">(\d{4})/);
+    const time = row[1].match(/class="pied">\s*(\d+)\s*h\s*(\d{2})?/);
+    const ticket = row[1].match(/href="([^"<>]*achat\/index\.cfm\?RepresentationID=\d+)"/);
+    const month = date && monthNumber(date[2]);
+    if (!month || !time || !ticket) continue;
+    const day = `${date[3]}-${String(month).padStart(2, '0')}-${date[1].padStart(2, '0')}`;
+    sessions.set(montrealIso(day, [Number(time[1]), Number(time[2] || 0)]), new URL(ticket[1], url).href);
+  }
+  return sessions;
+}
+
+export async function resolveModerneBookings(showtimes, log = () => {}) {
+  const urls = [...new Set(showtimes.map((s) => s.bookingUrl).filter((u) => u?.startsWith('https://cinemamoderne.ticketacces.net/') && u.includes('EvenementID=')))];
+  await mapLimit(urls, 3, async (url) => {
+    try {
+      const sessions = parseTicketSessions(await getText(url), url);
+      for (const s of showtimes) if (s.bookingUrl === url && sessions.has(s.start)) s.bookingUrl = sessions.get(s.start);
+    } catch (err) { log(`billetterie indisponible : ${err.message}`); }
+  });
+}
+
 export default {
   id: 'moderne',
   name: 'Cinéma Moderne',
-  async fetch({ days }) {
+  async fetch({ days, log }) {
     const first = todayYmd();
     const last = addDays(first, days - 1);
     const months = [...new Set([first, last].map((d) => d.slice(0, 7)))];
@@ -81,6 +105,7 @@ export default {
         });
       }
     }
+    await resolveModerneBookings(showtimes, log);
     return { cinemas: [CINEMA], showtimes };
   },
 };
