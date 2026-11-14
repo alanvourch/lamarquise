@@ -1,3 +1,4 @@
+import { MovieLink } from './MovieLink.jsx';
 import { useMemo, useState } from 'react';
 import { Icon, ImdbBadge, Poster, ReleaseBadge, Sheet, VersionBadge } from './ui.jsx';
 import { formatPrice } from '../lib/format.js';
@@ -111,14 +112,14 @@ export function CinemaList({ showtimes, data, favCinemas, onToggleCinema, onOpen
                 const movie = data.movies.get(mid);
                 return (
                   <li key={mid} className="cinema-movie">
-                    <button className="cinema-movie-main" onClick={() => onOpen(mid)}>
+                    <MovieLink className="cinema-movie-main" movie={movie} onOpen={onOpen}>
                       <Poster movie={movie} size="w154" className="cinema-movie-poster" />
                       <span className="cinema-movie-info">
                         <span className="cinema-movie-title">{movie.title}</span>
                         <ReleaseBadge movie={movie} today={today} />
                         <ImdbBadge movie={movie} />
                       </span>
-                    </button>
+                    </MovieLink>
                     <div className="st-row st-row--compact">
                       {list.map((s) => (
                         <a

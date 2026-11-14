@@ -1,3 +1,4 @@
+import { MovieLink } from './MovieLink.jsx';
 import { useMemo } from 'react';
 import { Poster, ReleaseBadge } from './ui.jsx';
 import { releaseStatus, releaseLabel } from '../lib/time.js';
@@ -27,14 +28,14 @@ export function Releases({ data, today, onOpen, query = '' }) {
         {items.map((movie) => {
           const out = movie.releaseDate <= today;
           return (
-            <button key={movie.id} className="release" onClick={() => onOpen(movie.id)}>
+            <MovieLink key={movie.id} className="release" movie={movie} onOpen={onOpen}>
               <Poster movie={movie} size="w185" className="release-poster" />
               <ReleaseBadge movie={movie} today={today} />
               <span className={`release-date ${out ? 'release-date--out' : ''}`}>
                 {releaseLabel(movie.releaseDate, today)}
               </span>
               <span className="release-title">{movie.title}</span>
-            </button>
+            </MovieLink>
           );
         })}
       </div>

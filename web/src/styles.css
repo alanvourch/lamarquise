@@ -582,6 +582,14 @@ a {
   position: relative;
 }
 
+.card-hit,
+.srow-main,
+.cinema-movie-main,
+.release {
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
 .card-hit {
   display: block;
   width: 100%;

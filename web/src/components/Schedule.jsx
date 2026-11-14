@@ -1,3 +1,4 @@
+import { MovieLink } from './MovieLink.jsx';
 import { Fragment, useMemo } from 'react';
 import { Icon, ImdbBadge, Poster, ReleaseBadge, VersionBadge } from './ui.jsx';
 import { dayLabel, formatTime, untilLabel } from '../lib/time.js';
@@ -42,7 +43,7 @@ function ScheduleRow({ group, data, nowTs, today, onOpen }) {
   const cinemaLabel = cinemaCount === 1 ? data.cinemas.get(first.cinemaId).name : `${cinemaCount} cinémas`;
   return (
     <li className="srow">
-      <button className="srow-main" onClick={() => onOpen(movie.id, first.day)}>
+      <MovieLink className="srow-main" movie={movie} onOpen={onOpen} day={first.day}>
         <Poster movie={movie} size="w154" className="srow-poster" />
         <span className="srow-info">
           <span className="srow-title">{movie.title}</span>
@@ -60,7 +61,7 @@ function ScheduleRow({ group, data, nowTs, today, onOpen }) {
           </span>
         </span>
         <Icon name="chevron" size={16} />
-      </button>
+      </MovieLink>
     </li>
   );
 }

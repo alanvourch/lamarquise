@@ -1,3 +1,4 @@
+import { MovieLink } from './MovieLink.jsx';
 import { Icon, ImdbBadge, Poster, ReleaseBadge, VersionBadge } from './ui.jsx';
 import { VERSIONS } from '../lib/filters.js';
 import { formatRuntime, formatTime, shortDayLabel } from '../lib/time.js';
@@ -10,7 +11,7 @@ export function MovieCard({ group, cinemas, onOpen, inWatchlist, onToggleWatch, 
   const meta = [movie.year, formatRuntime(movie.runtime), movie.genres?.[0]].filter(Boolean).join(' · ');
   return (
     <article className="card">
-      <button className="card-hit" onClick={() => onOpen(movie.id)} aria-label={`Voir ${movie.title}`}>
+      <MovieLink className="card-hit" movie={movie} onOpen={onOpen} aria-label={`Voir ${movie.title}`}>
         <div className="card-poster">
           <Poster movie={movie} />
           <div className="card-poster-top">
@@ -39,7 +40,7 @@ export function MovieCard({ group, cinemas, onOpen, inWatchlist, onToggleWatch, 
             {cinemaIds.size > 1 ? 's' : ''}
           </p>
         </div>
-      </button>
+      </MovieLink>
       <button
         className={`fav-btn ${inWatchlist ? 'fav-btn--on' : ''}`}
         onClick={() => onToggleWatch(movie.id)}

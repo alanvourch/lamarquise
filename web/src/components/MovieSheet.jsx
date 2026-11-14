@@ -1,3 +1,4 @@
+import { filmUrl } from './MovieLink.jsx';
 import { useMemo, useState } from 'react';
 import { Icon, Poster, ReleaseBadge, ScoreLinks, Sheet, VersionBadge } from './ui.jsx';
 import { GRACE_MS, priceFor } from '../lib/filters.js';
@@ -15,7 +16,6 @@ export const letterboxdDirector = (name) =>
     .replace(/^-|-$/g, '')}/`;
 
 /** Address of the film's own page, which carries the link preview (title, poster) for sharing. */
-export const filmUrl = (movie) => new URL(`${import.meta.env.BASE_URL}film/${movie.id}/`, location.origin).href;
 
 function ShowtimeChip({ s, cinema, settings, nowTs }) {
   const past = s.ts < nowTs - GRACE_MS;
